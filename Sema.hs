@@ -6,7 +6,7 @@
 ----
 ---- Maintainer  :  syoyo@lighttransport.com
 ---- Stability   :  experimental
----- Portability :  GHC 6.6
+---- Portability :  GHC 7.6
 ----
 ---- Sema        :  Do some semantic analysis.
 ----

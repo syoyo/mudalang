@@ -6,7 +6,7 @@
 ----
 ---- Maintainer  :  syoyo@lighttransport.com
 ---- Stability   :  experimental
----- Portability :  GHC 6.6
+---- Portability :  GHC 7.6
 ----
 ---- SyntaxChecker: Do type checking, syntax checking, temporal symbol
 ----                assignment and symbol management during syntax processing.

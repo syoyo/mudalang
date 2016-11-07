@@ -6,7 +6,7 @@
 ----
 ---- Maintainer  :  lu_zero@gentoo.org
 ---- Stability   :  experimental
----- Portability :  GHC 6.6
+---- Portability :  GHC 7.6
 ----
 ---- CodeGenVMX  :  Code generator for PowerPC VMX/Altivec
 ----
@@ -15,7 +15,7 @@ module CodeGenVMX where
 
 import Debug.Trace
 
-import Char
+import Data.Char
 import qualified IR
 import qualified Sym
 import qualified TypeMUDA as T

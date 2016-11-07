@@ -6,7 +6,7 @@
 ----
 ---- Maintainer  :  syoyo@lighttransport.com
 ---- Stability   :  experimental
----- Portability :  GHC 6.6
+---- Portability :  GHC 7.6
 ----
 ---- CodeGenLLVM :  Code generator for LLVM IR(ascii format).
 ----                TODO: Use Template Haskell?
@@ -21,7 +21,7 @@ import Foreign.Marshal.Alloc
 import Foreign.C.Types
 import System.IO.Unsafe         -- A magical module ;-)
 
-import Char
+import Data.Char
 import qualified IR
 import qualified Sym
 import qualified TypeMUDA as T
@@ -103,12 +103,12 @@ floatAsUInt p = do
   return ui
 
 bitcastFloatToUInt :: CFloat -> CUInt
-bitcastFloatToUInt f = unsafePerformIO $ do
+bitcastFloatToUInt f = System.IO.Unsafe.unsafePerformIO $ do
   r <- with f floatAsUInt
   return r
 
 bitcastDoubleToULLong :: CDouble -> CULLong
-bitcastDoubleToULLong d = unsafePerformIO $ do
+bitcastDoubleToULLong d = System.IO.Unsafe.unsafePerformIO $ do
   r <- with d doubleAsULLong
   return r
 
@@ -1301,19 +1301,6 @@ instance CodeGenLLVM IR.Exp where
                    , docStr ";"
                    ]
 
-    --
-    -- as_vec(a).
-    -- Mapped to cast to __m128.
-    --
-    IR.EAsVec sym exps
-        -> concatD [ prt $ exps !! 0      -- first elem only
-                   , prtSymConstDef sym
-                   , docStr "="
-                   , docStr "(__m128)"
-                   , prtFuncArgSyms $ [exps !! 0]
-                   , docStr ")), _mm_set1_epi32(0))"
-                   , docStr ";"
-                   ]
 
     --
     -- struct field selector.

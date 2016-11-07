@@ -1,8 +1,8 @@
 module Main where
 
 
-import IO ( stdin, hGetContents )
-import System ( getArgs, getProgName )
+import System.IO ( stdin, hGetContents )
+import System.Environment ( getArgs, getProgName )
 import System.Console.GetOpt
 import System.FilePath
 import Data.Maybe ( fromMaybe )

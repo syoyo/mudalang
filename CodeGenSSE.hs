@@ -6,7 +6,7 @@
 ----
 ---- Maintainer  :  syoyo@lighttransport.com
 ---- Stability   :  experimental
----- Portability :  GHC 6.6
+---- Portability :  GHC 7.6
 ----
 ---- CodeGenSSE  :  Code generator for x86 SSE2.
 ----
@@ -16,7 +16,7 @@ module CodeGenSSE where
 import Debug.Trace
 import Text.Regex
 
-import Char
+import Data.Char
 import qualified IR
 import qualified Sym
 import qualified TypeMUDA as T
