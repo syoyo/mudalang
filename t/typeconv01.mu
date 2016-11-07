@@ -1,4 +1,4 @@
-int func(int m)
+void func(int m)
 {
     ivec vm = m;
 

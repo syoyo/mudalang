@@ -82,6 +82,9 @@ You can run test for MUDA compiler by typing,
   
 ::
 
+  $ cd libm
+  $ make
+  $ cd ..
   $ cd t
   $ python tester.py
     (You'll need python) 

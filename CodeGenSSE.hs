@@ -2544,7 +2544,7 @@ instance CodeGenSSE IR.Stm where
     IR.SReturnVoid          -> concatD
 
       [ docStr "return"
-      , docStr ";"
+      , docStr "; // void"
       ]
 
     IR.SReturn exp          -> concatD

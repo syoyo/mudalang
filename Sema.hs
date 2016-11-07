@@ -36,12 +36,15 @@ hasRetrunStmt stms = any (True ==) (map isReturnStmt stms)
  
 --
 -- Insert SReturnVoid if there's no return statement in the toplevel body of
--- the function.
+-- the function and the type of the return value is `void'.
 --
 insertReturnIfNeeded :: IR.Func -> IR.Func
 insertReturnIfNeeded f@(IR.Fun specs ty ident formals stms) = case (hasRetrunStmt stms) of
   True  -> f
-  False -> IR.Fun specs ty ident formals (stms ++ [IR.SReturnVoid])    -- Append to last.
+  False -> if IR.convTypeMUDA ty == T.Void then
+             IR.Fun specs ty ident formals (stms ++ [IR.SReturnVoid])    -- Append void stmt to the last.
+           else
+             f 
 
 
 -- vim: set sw=2 ts=2 expandtab:

@@ -1,4 +1,4 @@
-int gather_func(vec a) 
+void gather_func(vec a) 
 {
 
     if (gather(a) == 0xf) {

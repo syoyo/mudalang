@@ -1,4 +1,4 @@
-static vec theWorld()
+static void theWorld()
 {
 	// The World! Time stops...
 
