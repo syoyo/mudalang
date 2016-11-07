@@ -40,6 +40,17 @@ following tools.
   http://www.haskell.org/happy/
 
 
+Install via cabal.
+
+    $ cabal install alex
+    $ cabal install happy
+    $ cabal install bnfc
+
+Then, regenerate parser codes by
+
+    $ make gen
+
+
 How to compile
 ==============
 

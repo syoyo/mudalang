@@ -11,139 +11,103 @@ failure x = Bad $ "Undefined case: " ++ show x
 
 transIdent :: Ident -> Result
 transIdent x = case x of
-  Ident str  -> failure x
-
-
+  Ident string -> failure x
 transCFloat :: CFloat -> Result
 transCFloat x = case x of
-  CFloat str  -> failure x
-
-
+  CFloat string -> failure x
 transCDouble :: CDouble -> Result
 transCDouble x = case x of
-  CDouble str  -> failure x
-
-
+  CDouble string -> failure x
 transHexadecimal :: Hexadecimal -> Result
 transHexadecimal x = case x of
-  Hexadecimal str  -> failure x
-
-
+  Hexadecimal string -> failure x
 transProg :: Prog -> Result
 transProg x = case x of
-  Program strucs funcs  -> failure x
-
-
+  Program strucs funcs -> failure x
 transStruc :: Struc -> Result
 transStruc x = case x of
-  Struct id mdecs  -> failure x
-
-
+  Struct ident mdecs -> failure x
 transMDec :: MDec -> Result
 transMDec x = case x of
-  MDecl typ id  -> failure x
-
-
+  MDecl typ ident -> failure x
 transFunc :: Func -> Result
 transFunc x = case x of
-  Fun funcspecs typ id formaldecs stms  -> failure x
-
-
+  Fun funcspecs typ ident formaldecs stms -> failure x
 transFuncSpec :: FuncSpec -> Result
 transFuncSpec x = case x of
-  InlineFuncSpec  -> failure x
-  ForceInlineFuncSpec  -> failure x
-  AlwaysInlineFuncSpec  -> failure x
-  StaticFuncSpec  -> failure x
-
-
+  InlineFuncSpec -> failure x
+  ForceInlineFuncSpec -> failure x
+  AlwaysInlineFuncSpec -> failure x
+  StaticFuncSpec -> failure x
 transFormalDec :: FormalDec -> Result
 transFormalDec x = case x of
-  FormalDecl quals typ id  -> failure x
-
-
+  FormalDecl quals typ ident -> failure x
 transDecInit :: DecInit -> Result
 transDecInit x = case x of
-  DeclInit id decinitexps  -> failure x
-
-
+  DeclInit ident decinitexps -> failure x
 transDecInitExp :: DecInitExp -> Result
 transDecInitExp x = case x of
-  DExp exp  -> failure x
-
-
+  DExp exp -> failure x
 transQual :: Qual -> Result
 transQual x = case x of
-  InputQual  -> failure x
-  OutputQual  -> failure x
-  InOutQual  -> failure x
-  ArrayQual  -> failure x
-
-
+  InputQual -> failure x
+  OutputQual -> failure x
+  InOutQual -> failure x
+  ArrayQual -> failure x
 transStm :: Stm -> Result
 transStm x = case x of
-  SDecl typ decinits  -> failure x
-  SAssign id exp  -> failure x
-  SAssignWithField id fields exp  -> failure x
-  SAssignWithArray id exp0 exp  -> failure x
-  SExp exp  -> failure x
-  SBlock stms  -> failure x
-  SWhile exp stm  -> failure x
-  SIf exp stms0 stms  -> failure x
-  SReturn exp  -> failure x
-  SReturnVoid  -> failure x
-  SNew id n  -> failure x
-
-
+  SDecl typ decinits -> failure x
+  SAssign ident exp -> failure x
+  SAssignWithField ident fields exp -> failure x
+  SAssignWithArray ident exp1 exp2 -> failure x
+  SExp exp -> failure x
+  SBlock stms -> failure x
+  SWhile exp stm -> failure x
+  SIf exp stms1 stms2 -> failure x
+  SReturn exp -> failure x
+  SReturnVoid -> failure x
+  SNew ident integer -> failure x
 transExp :: Exp -> Result
 transExp x = case x of
-  EAnd exp0 exp  -> failure x
-  EOr exp0 exp  -> failure x
-  EXor exp0 exp  -> failure x
-  ENot exp0 exp  -> failure x
-  EEq exp0 exp  -> failure x
-  ENeq exp0 exp  -> failure x
-  EGt exp0 exp  -> failure x
-  EGte exp0 exp  -> failure x
-  ELt exp0 exp  -> failure x
-  ELte exp0 exp  -> failure x
-  ESlElemWise exp0 exp  -> failure x
-  ESrElemWise exp0 exp  -> failure x
-  ESlaElemWise exp0 exp  -> failure x
-  ESraElemWise exp0 exp  -> failure x
-  ESlQWord exp0 exp  -> failure x
-  ESrQWord exp0 exp  -> failure x
-  ESlaQWord exp0 exp  -> failure x
-  ESraQWord exp0 exp  -> failure x
-  EAdd exp0 exp  -> failure x
-  ESub exp0 exp  -> failure x
-  EMul exp0 exp  -> failure x
-  EDiv exp0 exp  -> failure x
-  EDivApprox exp0 exp  -> failure x
-  ENeg exp  -> failure x
-  EFieldSelect exp fields  -> failure x
-  EArray exp0 exp  -> failure x
-  EFunc id funcargss  -> failure x
-  EIdent id  -> failure x
-  EInt n  -> failure x
-  EDouble d  -> failure x
-  ECFloat cfloat  -> failure x
-  EHexadec hexadecimal  -> failure x
-
-
+  EAnd exp1 exp2 -> failure x
+  EOr exp1 exp2 -> failure x
+  EXor exp1 exp2 -> failure x
+  ENot exp1 exp2 -> failure x
+  EEq exp1 exp2 -> failure x
+  ENeq exp1 exp2 -> failure x
+  EGt exp1 exp2 -> failure x
+  EGte exp1 exp2 -> failure x
+  ELt exp1 exp2 -> failure x
+  ELte exp1 exp2 -> failure x
+  ESlElemWise exp1 exp2 -> failure x
+  ESrElemWise exp1 exp2 -> failure x
+  ESlaElemWise exp1 exp2 -> failure x
+  ESraElemWise exp1 exp2 -> failure x
+  ESlQWord exp1 exp2 -> failure x
+  ESrQWord exp1 exp2 -> failure x
+  ESlaQWord exp1 exp2 -> failure x
+  ESraQWord exp1 exp2 -> failure x
+  EAdd exp1 exp2 -> failure x
+  ESub exp1 exp2 -> failure x
+  EMul exp1 exp2 -> failure x
+  EDiv exp1 exp2 -> failure x
+  EDivApprox exp1 exp2 -> failure x
+  ENeg exp -> failure x
+  EFieldSelect exp fields -> failure x
+  EArray exp1 exp2 -> failure x
+  EFunc ident funcargss -> failure x
+  EIdent ident -> failure x
+  EInt integer -> failure x
+  EDouble double -> failure x
+  ECFloat cfloat -> failure x
+  EHexadec hexadecimal -> failure x
 transFuncArgs :: FuncArgs -> Result
 transFuncArgs x = case x of
-  EArg exp  -> failure x
-
-
+  EArg exp -> failure x
 transField :: Field -> Result
 transField x = case x of
-  EField id  -> failure x
-
-
+  EField ident -> failure x
 transTyp :: Typ -> Result
 transTyp x = case x of
-  TName id  -> failure x
-
-
+  TName ident -> failure x
 
