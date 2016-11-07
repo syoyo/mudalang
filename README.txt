@@ -24,7 +24,7 @@ Requirements
 
 First, you'll need Haskell compiler.
   
-* GHC(tested on GHC 6.6)
+* GHC(tested on GHC 7.6)
   http://www.haskell.org/ghc/
 
 Optionally, if you want to modify the MUDA compiler, you'll need
