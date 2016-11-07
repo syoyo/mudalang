@@ -4,7 +4,7 @@
 ---- Copyright   :  (c) Syoyo Fujita
 ---- License     :  BSD-style
 ----
----- Maintainer  :  syoyo@lucillerender.org
+---- Maintainer  :  syoyo@lighttransport.com
 ---- Stability   :  experimental
 ---- Portability :  GHC 6.6
 ----

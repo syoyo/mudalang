@@ -1,10 +1,10 @@
 Name:              muda
 Version:           0.1
 Description:       MUDA compiler written in Haskell.
-License:           BSD4
+License:           BSD2
 License-file:      LICENSE
 Author:            Syoyo Fujita
-Maintainer:        syoyo@lucillerender.org
+Maintainer:        syoyo@lighttransport.com
 Build-Depends:     base, haskell98, mtl, containers, parsec, regex-compat, array, filepath
 
 Executable:        mudah
