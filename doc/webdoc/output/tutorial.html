@@ -1,0 +1,295 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <title>Tutorial</title>
+    <meta http-equiv="Content-Type"
+        content="text/html; charset=utf-8" />
+    <link rel="stylesheet"
+        href="design.css"
+        type="text/css" />
+</head>
+<body>
+
+<!-- header is fixed -->
+    <div class="menu">
+    <h1><a href="index.html">MUDA : A vector language for CPU</a></h1>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="download.html">Download</a></li>
+<li><a href="tutorial.html">Tutorial</a></li>
+<li><a href="langspec.html">LangSpec</a></li>
+<li><a href="http://mudadev.blogspot.com/">Blog</a></li>
+<li><a href="devnote.html">DevNote</a></li>
+</ul>
+    <p/>
+    </div><!-- end of menu -->
+    <br/>
+    <br/>
+    <br/>
+
+
+    <div class="main">
+        <a name="startcontent" id="startcontent"></a>
+
+        <div class="document" id="tutorial">
+<h1 class="title">Tutorial</h1>
+<p>This page describes tutorial on MUDA language.</p>
+<div class="contents topic">
+<p class="topic-title first"><a id="contents" name="contents">Contents</a></p>
+<ul class="simple">
+<li><a class="reference" href="#first-muda-program" id="id1" name="id1">First MUDA program</a><ul>
+<li><a class="reference" href="#muda-is-a-vector-language" id="id2" name="id2">MUDA is a vector language</a></li>
+<li><a class="reference" href="#data-type" id="id3" name="id3">Data type</a></li>
+<li><a class="reference" href="#define-a-function" id="id4" name="id4">Define a function</a></li>
+<li><a class="reference" href="#input-and-output-for-function" id="id5" name="id5">Input and output for function</a></li>
+<li><a class="reference" href="#let-s-make-your-program" id="id6" name="id6">Let's make your program</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#sample-muda-program" id="id7" name="id7">Sample MUDA program</a></li>
+</ul>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id1" id="first-muda-program" name="first-muda-program">First MUDA program</a></h1>
+<p>Open your editor, type the following code and save it as <strong>add.mu</strong>.</p>
+<pre class="literal-block">
+vec func_add(vec a, vec b) {
+    return a + b;
+}
+</pre>
+<p>This function computes addition of two 4 x floating point vector variable.</p>
+<p>Let's compile it with <strong>mudah</strong> (MUDA High performance compiler).</p>
+<pre class="literal-block">
+$ mudah add.mu &gt; add.c
+</pre>
+<p>In default, <strong>mudah</strong> generates C code with SSE instruction.
+Compile generated C code with ordinary C compiler such like,</p>
+<pre class="literal-block">
+$ gcc -msse2 -c add.c
+</pre>
+<p>MUDA is designed for accelerating computation core of your program as a module(function or subroutines), thus you must still write callee C program for MUDA generated SIMD-C function.</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id2" id="muda-is-a-vector-language" name="muda-is-a-vector-language">MUDA is a vector language</a></h2>
+<p>MUDA is a vector language, especially floating point vector language. But you can mix scalar and vector expression. All scalar expression is first converted to vector element internally, then all floating point computation is done in vector.</p>
+<pre class="literal-block">
+vec a = 1.0;          // a = ftov(1.0)
+                      //   = (1.0, 1.0, 1.0, 1.0)
+                      //
+                      // ftov() means float-to-vector operation.
+
+
+float a, b;
+vec c = a * b;        // c = ftov(a) * ftov(b)
+</pre>
+<p>But in some case, there needs a scalar expression.</p>
+<ul class="simple">
+<li>expression for <strong>if</strong> and <strong>while</strong> condition</li>
+<li>assignment to scalar variable</li>
+<li>scalar argument for a function</li>
+</ul>
+<p>For such a situation, MUDA converts vector expression into scalar expression internally where <strong>preferred element</strong> is extracted from vector variable.</p>
+<p><strong>preferred element</strong> is defined as first element of vector variable.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="68%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+</colgroup>
+<tbody valign="top">
+<tr><td><strong>e0(preferred element)</strong></td>
+<td>e1</td>
+<td>e2</td>
+<td>e3</td>
+</tr>
+</tbody>
+</table>
+<p>Here is an example of if expression.</p>
+<pre class="literal-block">
+vec if_example(vec a)
+
+    if (a &gt; 1.0) {        // is converted to
+        return a          // -&gt; if (vtof(a &gt; ftov(1.0))) ...
+    } else {              //
+        return a*a        // where vtof() means extracting
+    }                     // preferred element from vector variable.
+</pre>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id3" id="data-type" name="data-type">Data type</a></h2>
+<p>MUDA supports following intrinsic data type.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="84%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Name</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>vec</td>
+<td>floating point 4 component vector(fp x 4)</td>
+</tr>
+<tr><td>ivec</td>
+<td>integer 4 component vector(32bit x 4)</td>
+</tr>
+<tr><td>float</td>
+<td>scalar floating point value</td>
+</tr>
+<tr><td>int</td>
+<td>scalar integer value(32bit).</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id4" id="define-a-function" name="define-a-function">Define a function</a></h2>
+<p>MUDA supports following function declaration.</p>
+<pre class="literal-block">
+// Usual function
+vec usual_suspects(vec a) {
+    return a * a;
+}
+
+// static function defined only in .mu file.
+static vec static_func(vec a) {
+    return a * a * a;
+}
+
+// inline function.
+// A compiler may inline this function, depend on optimization setting.
+inline vec inlined_func(vec a) {
+    return a + a;
+}
+
+// force inline function.
+// a function should be inlined.
+force_inline vec force_inlined_func(vec a) {
+    return a * a;
+}
+</pre>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id5" id="input-and-output-for-function" name="input-and-output-for-function">Input and output for function</a></h2>
+<p>MUDA doesn't support pointer data type, but supports <strong>out</strong> keyword in function argument.</p>
+<p>If the argument is qualified with <strong>out</strong>, you can return the value by through assigning a value into <strong>out</strong> qualified argument. <strong>out</strong> works almost same as in reference functionality in C++.</p>
+<p>If you want return two ore more values from the function. Please use <strong>out</strong> qualified function argument.</p>
+<pre class="literal-block">
+vec muda(out vec ret0, out vec ret1, vec indata) {
+
+    ret0 = indata * indata;   // return the computed value through arg.
+    ret1 = indata + indata;
+
+    return indata - indata;   // return the computed value
+}
+</pre>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id6" id="let-s-make-your-program" name="let-s-make-your-program">Let's make your program</a></h2>
+<p>That's all for MUDA tutorial. You may soon write your MUDA program, because syntax is almost same for C or GLSL program.</p>
+<p>For more information on MUDA language, see <a class="reference" href="langspec.html">langspec</a>.</p>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id7" id="sample-muda-program" name="sample-muda-program">Sample MUDA program</a></h1>
+<p>Here is Muller's ray-triangle intersection code written in MUDA.</p>
+<pre class="literal-block">
+// SIMD cross product
+static inline vec cross4(vec a, vec b, vec c, vec d)
+{
+    return ((a * b) - (c * d));
+}
+
+// SIMD dot product
+static inline vec dot4(vec ax, vec ay, vec az, vec bx, vec by, vec bz)
+{
+    return (ax * bx + ay * by + az * bz);
+}
+
+//
+// 1 ray - 4 triangles intersection.
+// Assume that, for ray data, same value is copied over 4 elements.
+//
+vec
+isect(vec rox, vec roy, vec roz,
+      vec rdx, vec rdy, vec rdz,
+      vec v0x, vec v0y, vec v0z,
+      vec e1x, vec e1y, vec e1z,
+      vec e2x, vec e2y, vec e2z,
+      out vec outT, out vec outU, out vec outV, vec prevT)
+{
+    vec px, py, pz;
+
+    // p = d x e2
+    px = cross4(e2z, e2y, rdy, rdz);
+    py = cross4(e2x, e2z, rdz, rdx);
+    pz = cross4(e2y, e2x, rdx, rdy);
+
+    vec sx, sy, sz;
+
+    sx = rox - v0x;
+    sy = roy - v0y;
+    sz = roz - v0z;
+
+    vec qx, qy, qz;
+
+    vec vone  = vec(1.0);
+    vec vzero = vec(0.0);
+    vec a     = dot4(px, py, pz, e1x, e1y, e1z);
+
+    // `slash dot' operator means approximate division if possible.
+    vec rpa   = vone /. a;
+
+    // q = s x e1
+    qx = cross4(e1z, e1y, sy, sz);
+    qy = cross4(e1x, e1z, sz, sx);
+    qz = cross4(e1y, e1x, sx, sy);
+
+    vec u, v, t;
+
+    u = dot4(sx, sy, sz, px, py, pz) * rpa;
+    v = dot4(rdx, rdy, rdz, qx, qy, qz) * rpa;
+    t = dot4(e2x, e2y, e2z, qx, qy, qz) * rpa;
+
+    vec eps;
+
+    eps = vec(0.00001);
+
+    vec mask0;
+
+    mask0 = (((a * a) &gt; eps) &amp; ((u + v) &lt; vone))
+          &amp; ((u &gt; vzero) &amp; (v &gt; vzero));
+
+    vec mask;
+
+    //
+    // final mask
+    //
+    mask = (mask0 &amp; t) &amp; (t &lt; prevT);
+
+    outT = sel(outT, t, mask);
+    outU = sel(outU, t, mask);
+    outV = sel(outV, t, mask);
+
+    return mask;
+
+}
+</pre>
+<p>endOfFile</p>
+</div>
+</div>
+
+
+        <div class="end">
+            <br/>
+            <br/>
+            <br/>
+            <small>
+                Page last modified <strong>Tue Dec 11 02:07:58 2007</strong>.
+            </small>
+        </div>
+    </div>
+</body>
+</html>

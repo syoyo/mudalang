@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <title>Download</title>
+    <meta http-equiv="Content-Type"
+        content="text/html; charset=utf-8" />
+    <link rel="stylesheet"
+        href="design.css"
+        type="text/css" />
+</head>
+<body>
+
+<!-- header is fixed -->
+    <div class="menu">
+    <h1><a href="index.html">MUDA : A vector language for CPU</a></h1>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="download.html">Download</a></li>
+<li><a href="tutorial.html">Tutorial</a></li>
+<li><a href="langspec.html">LangSpec</a></li>
+<li><a href="http://mudadev.blogspot.com/">Blog</a></li>
+<li><a href="devnote.html">DevNote</a></li>
+</ul>
+    <p/>
+    </div><!-- end of menu -->
+    <br/>
+    <br/>
+    <br/>
+
+
+    <div class="main">
+        <a name="startcontent" id="startcontent"></a>
+
+        <div class="document">
+<div class="section">
+<h1><a id="snapshot" name="snapshot">Snapshot</a></h1>
+<p>So far, MUDA has no official releases since its in early development phase.
+You can download development source tree from svn repository.</p>
+<pre class="literal-block">
+$ svn co https://lucille.svn.sourceforge.net/svnroot/lucille/angelina/haskellmuda muda
+</pre>
+<p><strong>CAUTION</strong> URL begins with <em>https</em>, not http.</p>
+</div>
+<div class="section">
+<h1><a id="requirements" name="requirements">Requirements</a></h1>
+<p>MUDA compiler <strong>mudah</strong> is written totally in Haskell.</p>
+<p>To build MUDA compiler, You'll need Haskell compiler, especially GHC.
+You can grab GHC from <a class="reference" href="http://www.haskell.org/ghc/">http://www.haskell.org/ghc/</a></p>
+</div>
+<div class="section">
+<h1><a id="supported-platform" name="supported-platform">Supported platform</a></h1>
+<p>MUDA compiler may works any platform where Haskell compiler GHC works(e.g. Linux, Win32, Mac OS X, BSD, etc).</p>
+<p>MUDA genrated SIMD-C code may be compiled on following platforms.</p>
+<ul class="simple">
+<li>x86/SSE backend<ul>
+<li>HW: CPUs which supports SSE2.</li>
+<li>Compilers:<ul>
+<li>gcc, which supports <strong>-msse2</strong> compiler option.</li>
+<li>icc, cl(Visual C++)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>LLVM IR backend<ul>
+<li>TODO</li>
+</ul>
+</li>
+<li>PPC/AltiVec backend<ul>
+<li>TODO</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section">
+<h1><a id="build" name="build">Build</a></h1>
+<p>After checking out MUDA source tree from above svn repository, type following</p>
+<pre class="literal-block">
+$ cd muda
+$ make
+
+# MUDA compiler named 'mudah' is built at top directory.
+
+$ make test  &lt;- this is optional
+</pre>
+</div>
+<div class="section">
+<h1><a id="let-s-try" name="let-s-try">Let's try!</a></h1>
+<p>If you success to build MUDA compiler, go <a class="reference" href="tutorial.html">tutorial</a> to quickly learn MUDA language.</p>
+</div>
+</div>
+
+
+        <div class="end">
+            <br/>
+            <br/>
+            <br/>
+            <small>
+                Page last modified <strong>Wed Dec 12 01:42:04 2007</strong>.
+            </small>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+restindex
+	crumb: Home
+	format: rest
+	page-title: MUDA home: A vector language for CPU
+	encoding: utf-8
+	output-encoding: None
+/restindex
+
+====
+MUDA
+====
+
+
+**MUDA(MUltiple Data Accelerator) language** is a short-vector SIMD language. MUDA's syntax is almost like GLSL(OpenGL Shading Language), but the compiled code runs on **CPU**, since MUDA compiler outputs plain SIMD-C code(for now, x86 SSE is supported).
+
+::
+
+  // SSE code                               // MUDA code
+  __m128 func(__m128 a, __m128 b) {         vec func(vec a, vec b) {
+      
+      return _mm_add_ps(                        return a * a + b;
+                 _mm_mul_ps(a, a), b);
+
+  }                                         }
+
+
+
+* Download_
+* Tutorial_
+* `MUDA Language Specification`_
+* DevLog_ (development logs. it would be updated frequently)
+
+For whom?
+=========
+
+MUDA is designed to accelerate your performance oriented program by using CPU's SIMD instruction.
+
+If your program is floating point compute-intensive, it would be worth to use MUDA language. MUDA compiler emits a SIMD-C code, thus you can easily bind MUDA code and your C/C++ code.
+
+Here is an application area. 
+
+* offline/online graphics
+* quantitative finance
+* simulation
+* data mining
+
+
+NEWS
+====
+
+* 17 Dec, 2007: Added new MUDA author!
+* 10 Dec, 2007: Initial MUDA site opens!
+
+
+TODOs
+=====
+
+* LLVM IR backend
+* x86 SSE: Support for SSE3/4/5 
+* Automatic optimizer with AMD codeanalyst, HW performance counter, etc. 
+* Automatic cache optimization.
+* Message based paralellisation.
+* Some annotation techniques(testing, precision control, debugging, etc)
+
+MUDA Authors
+============
+
+* Syoyo Fujita : http://lucille.atso-net.jp/blog/
+* Luca Barbato : http://dev.gentoo.org/~lu_zero/
+
+  - VMX(AltiVec) backend
+
+.. _Download: download.html
+.. _Tutorial: tutorial.html
+.. _`MUDA Language Specification`: langspec.html
+.. _DevLog: devlog.html

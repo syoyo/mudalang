@@ -1,0 +1,257 @@
+restindex
+    crumb: muda root    
+    format: rest
+    page-title: Tutorial
+    encoding: utf-8
+    output-encoding: None
+    section-pages: tutorial
+/restindex
+
+========
+Tutorial
+========
+
+This page describes tutorial on MUDA language.
+
+.. contents::
+
+First MUDA program
+==================
+
+Open your editor, type the following code and save it as **add.mu**.
+
+
+::
+
+  vec func_add(vec a, vec b) {
+      return a + b;
+  }
+
+This function computes addition of two 4 x floating point vector variable.
+
+Let's compile it with **mudah** (MUDA High performance compiler).
+
+::
+
+  $ mudah add.mu > add.c
+
+
+In default, **mudah** generates C code with SSE instruction.
+Compile generated C code with ordinary C compiler such like,
+
+::
+
+  $ gcc -msse2 -c add.c
+
+
+MUDA is designed for accelerating computation core of your program as a module(function or subroutines), thus you must still write callee C program for MUDA generated SIMD-C function.
+
+
+MUDA is a vector language
+-------------------------
+
+MUDA is a vector language, especially floating point vector language. But you can mix scalar and vector expression. All scalar expression is first converted to vector element internally, then all floating point computation is done in vector.
+
+::
+
+  vec a = 1.0;		// a = ftov(1.0)
+                        //   = (1.0, 1.0, 1.0, 1.0)
+			//
+			// ftov() means float-to-vector operation.
+
+
+  float a, b;
+  vec c = a * b;        // c = ftov(a) * ftov(b)
+
+
+But in some case, there needs a scalar expression.
+
+* expression for **if** and **while** condition
+* assignment to scalar variable
+* scalar argument for a function
+
+For such a situation, MUDA converts vector expression into scalar expression internally where **preferred element** is extracted from vector variable.
+
+**preferred element** is defined as first element of vector variable.
+
++-------------------------+----+----+----+
+|**e0(preferred element)**| e1 | e2 | e3 |
++-------------------------+----+----+----+
+
+
+Here is an example of if expression.
+
+::
+
+  vec if_example(vec a)
+
+      if (a > 1.0) {        // is converted to
+          return a          // -> if (vtof(a > ftov(1.0))) ...
+      } else {              //
+          return a*a        // where vtof() means extracting
+      }                     // preferred element from vector variable.
+
+Data type
+---------
+
+MUDA supports following intrinsic data type.
+
+========  =========================================
+  Name    Description
+========  =========================================
+  vec     floating point 4 component vector(fp x 4)
+  ivec    integer 4 component vector(32bit x 4)
+  float   scalar floating point value
+  int     scalar integer value(32bit).
+========  =========================================
+
+Define a function
+-----------------
+
+MUDA supports following function declaration.
+
+::
+  
+  // Usual function
+  vec usual_suspects(vec a) {
+      return a * a;
+  }
+
+  // static function defined only in .mu file.
+  static vec static_func(vec a) {
+      return a * a * a;
+  }
+
+  // inline function.
+  // A compiler may inline this function, depend on optimization setting.
+  inline vec inlined_func(vec a) {
+      return a + a;
+  }
+
+  // force inline function.
+  // a function should be inlined.
+  force_inline vec force_inlined_func(vec a) {
+      return a * a;
+  }
+
+
+Input and output for function
+-----------------------------
+
+MUDA doesn't support pointer data type, but supports **out** keyword in function argument.
+
+If the argument is qualified with **out**, you can return the value by through assigning a value into **out** qualified argument. **out** works almost same as in reference functionality in C++.
+
+If you want return two ore more values from the function. Please use **out** qualified function argument.
+
+::
+
+  vec muda(out vec ret0, out vec ret1, vec indata) {
+
+      ret0 = indata * indata;	// return the computed value through arg.
+      ret1 = indata + indata;
+
+      return indata - indata;	// return the computed value
+  }
+
+
+Let's make your program
+-----------------------
+
+That's all for MUDA tutorial. You may soon write your MUDA program, because syntax is almost same for C or GLSL program.
+
+For more information on MUDA language, see langspec_.
+
+                        
+
+Sample MUDA program
+===================
+
+Here is Muller's ray-triangle intersection code written in MUDA.
+
+::
+
+  // SIMD cross product
+  static inline vec cross4(vec a, vec b, vec c, vec d)
+  {
+      return ((a * b) - (c * d));
+  }
+  
+  // SIMD dot product
+  static inline vec dot4(vec ax, vec ay, vec az, vec bx, vec by, vec bz)
+  {
+      return (ax * bx + ay * by + az * bz);
+  }
+  
+  //
+  // 1 ray - 4 triangles intersection.
+  // Assume that, for ray data, same value is copied over 4 elements. 
+  //
+  vec
+  isect(vec rox, vec roy, vec roz,
+        vec rdx, vec rdy, vec rdz,
+        vec v0x, vec v0y, vec v0z,
+        vec e1x, vec e1y, vec e1z,
+        vec e2x, vec e2y, vec e2z,
+        out vec outT, out vec outU, out vec outV, vec prevT)
+  {
+      vec px, py, pz;
+  
+      // p = d x e2
+      px = cross4(e2z, e2y, rdy, rdz);
+      py = cross4(e2x, e2z, rdz, rdx);
+      pz = cross4(e2y, e2x, rdx, rdy);
+  
+      vec sx, sy, sz;
+  
+      sx = rox - v0x;
+      sy = roy - v0y;
+      sz = roz - v0z;
+  
+      vec qx, qy, qz;
+  
+      vec vone  = vec(1.0);
+      vec vzero = vec(0.0);
+      vec a     = dot4(px, py, pz, e1x, e1y, e1z);
+  
+      // `slash dot' operator means approximate division if possible.
+      vec rpa   = vone /. a;
+  
+      // q = s x e1
+      qx = cross4(e1z, e1y, sy, sz);
+      qy = cross4(e1x, e1z, sz, sx);
+      qz = cross4(e1y, e1x, sx, sy);
+  
+      vec u, v, t;
+  
+      u = dot4(sx, sy, sz, px, py, pz) * rpa;
+      v = dot4(rdx, rdy, rdz, qx, qy, qz) * rpa;
+      t = dot4(e2x, e2y, e2z, qx, qy, qz) * rpa;
+  
+      vec eps;
+  
+      eps = vec(0.00001);
+  
+      vec mask0;
+  
+      mask0 = (((a * a) > eps) & ((u + v) < vone))
+            & ((u > vzero) & (v > vzero));
+  
+      vec mask;
+  
+      //
+      // final mask
+      //
+      mask = (mask0 & t) & (t < prevT);
+  
+      outT = sel(outT, t, mask);
+      outU = sel(outU, t, mask);
+      outV = sel(outV, t, mask);
+  
+      return mask;
+      
+  }
+
+.. _langspec: langspec.html
+
+endOfFile

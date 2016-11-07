@@ -1,0 +1,219 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <title>MUDA Development Logs</title>
+    <meta http-equiv="Content-Type"
+        content="text/html; charset=utf-8" />
+    <link rel="stylesheet"
+        href="design.css"
+        type="text/css" />
+</head>
+<body>
+
+<!-- header is fixed -->
+    <div class="menu">
+    <h1><a href="index.html">MUDA : A vector language for CPU</a></h1>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="download.html">Download</a></li>
+<li><a href="tutorial.html">Tutorial</a></li>
+<li><a href="langspec.html">LangSpec</a></li>
+<li><a href="http://mudadev.blogspot.com/">Blog</a></li>
+<li><a href="devnote.html">DevNote</a></li>
+</ul>
+    <p/>
+    </div><!-- end of menu -->
+    <br/>
+    <br/>
+    <br/>
+
+
+    <div class="main">
+        <a name="startcontent" id="startcontent"></a>
+
+        <div class="document">
+<div class="contents topic">
+<p class="topic-title first"><a id="contents" name="contents">Contents</a></p>
+<ul class="simple">
+<li><a class="reference" href="#recent-activities" id="id3" name="id3">Recent activities</a></li>
+<li><a class="reference" href="#references" id="id4" name="id4">References</a><ul>
+<li><a class="reference" href="#overall-optimization-theory" id="id5" name="id5">Overall optimization theory</a></li>
+<li><a class="reference" href="#memory-access-optimization" id="id6" name="id6">Memory access optimization</a><ul>
+<li><a class="reference" href="#articles" id="id7" name="id7">Articles</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#automatic-simdization" id="id8" name="id8">Automatic SIMDization</a><ul>
+<li><a class="reference" href="#id1" id="id9" name="id9">Articles</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#automatic-tuning-code-generation" id="id10" name="id10">Automatic tuning, code generation</a><ul>
+<li><a class="reference" href="#id2" id="id11" name="id11">Articles</a></li>
+<li><a class="reference" href="#softwares" id="id12" name="id12">Softwares</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id3" id="recent-activities" name="recent-activities">Recent activities</a></h1>
+<p>Feb 11, 2008</p>
+<blockquote>
+<p>I've started MUDA development blog.</p>
+<p><a class="reference" href="http://mudadev.blogspot.com/">http://mudadev.blogspot.com/</a></p>
+<p>Now activities on MUDA development are posted to the blog, not here.
+but <a class="reference" href="#references">References</a> are still updated here.</p>
+</blockquote>
+<p>Dec 29, 2007</p>
+<blockquote>
+<p>I'm reading &quot;Efficient Utilization of SIMD Extensions&quot;. This paper is a
+good starting point to survey automatic SIMD vectorization.</p>
+<p>According to this papare, automaic SIMD vectorization is roughly separated
+into 3 layers.</p>
+<ul class="simple">
+<li>Symbolic vectorization<ul>
+<li>Do vectorization in language or application context level.</li>
+</ul>
+</li>
+<li>Straight line code vectorization<ul>
+<li>Find a coherence in scalar code path and vectorize it?</li>
+</ul>
+</li>
+<li>Special purpose compiler for vectorized code.<ul>
+<li>Custom instruction scheduler and register allocator for vector
+instruction for fast binary code generation.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<p>Dec 17, 2007</p>
+<blockquote>
+I made MUDA site on Launchpad. <a class="reference" href="https://launchpad.net/muda">https://launchpad.net/muda</a>
+I'm a newbie on Launchpad, thus just playing with Launchpad so far.
+I'm considering to use Lauchpad site for some collaboration and managing.
+(e.g. translation, Q&amp;A, project management)</blockquote>
+<p>Dec 11, 2007</p>
+<blockquote>
+Added some references on automatic tuning and code generation.</blockquote>
+<p>Dec 10, 2007</p>
+<blockquote>
+Launched MUDA site!</blockquote>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id4" id="references" name="references">References</a></h1>
+<p>Here is some links which is a great help to develop MUDA.</p>
+<div class="section">
+<h2><a class="toc-backref" href="#id5" id="overall-optimization-theory" name="overall-optimization-theory">Overall optimization theory</a></h2>
+<ul class="simple">
+<li>How to write fast numeric code: A small introduction<ul>
+<li><a class="reference" href="http://spiral.ece.cmu.edu:8080/pub-spiral/abstract.jsp?id=100">http://spiral.ece.cmu.edu:8080/pub-spiral/abstract.jsp?id=100</a></li>
+<li>From SPIRAL team.</li>
+<li>The algorithm is most important for optimization. Cache optimization follows. SIMD-ization is last resort(i.e. not so important)</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id6" id="memory-access-optimization" name="memory-access-optimization">Memory access optimization</a></h2>
+<div class="section">
+<h3><a class="toc-backref" href="#id7" id="articles" name="articles">Articles</a></h3>
+<ul class="simple">
+<li>What every programmer should know about memory<ul>
+<li><a class="reference" href="http://lwn.net/Articles/259710/">http://lwn.net/Articles/259710/</a></li>
+<li>by Ulrich Drepper</li>
+<li>Must read</li>
+</ul>
+</li>
+<li>Universal Cache Miss Equations for the Memory Hierarchy<ul>
+<li><a class="reference" href="http://www.bestechvideos.com/2007/07/06/universal-cache-miss-equations-for-the-memory-hierarchy">http://www.bestechvideos.com/2007/07/06/universal-cache-miss-equations-for-the-memory-hierarchy</a></li>
+<li>Google tech talk</li>
+</ul>
+</li>
+<li>Cache Miss Equations: An Analytical Representation of Cache Misses<ul>
+<li><a class="reference" href="http://citeseer.ist.psu.edu/ghosh97cache.html">http://citeseer.ist.psu.edu/ghosh97cache.html</a></li>
+<li>Good model to analyze cache misses.</li>
+<li>Implemented in SUIF</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id8" id="automatic-simdization" name="automatic-simdization">Automatic SIMDization</a></h2>
+<div class="section">
+<h3><a class="toc-backref" href="#id9" id="id1" name="id1">Articles</a></h3>
+<ul class="simple">
+<li>Efficient Utilization of SIMD Extensions<ul>
+<li><a class="reference" href="http://www.ece.cmu.edu/~franzf/papers/ieee-si.pdf">http://www.ece.cmu.edu/~franzf/papers/ieee-si.pdf</a></li>
+<li>Franz Franchetti, Stefan Kral, Juergen Lorenz, Christoph W. Ueberhuber. Invited paper</li>
+<li>This paper describes straight line code SIMDization, but can be used as a survey paper for SIMDization.</li>
+</ul>
+</li>
+<li>Automatic SIMD vectorization<ul>
+<li><a class="reference" href="ftp://ftp.vcpc.univie.ac.at/">ftp://ftp.vcpc.univie.ac.at/</a> projects/aurora/reports/auroratr2004-03.ps.gz</li>
+<li>Jourgen Lorenz, Ph.D thesis</li>
+<li>straight line code SIMDization.</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id10" id="automatic-tuning-code-generation" name="automatic-tuning-code-generation">Automatic tuning, code generation</a></h2>
+<div class="section">
+<h3><a class="toc-backref" href="#id11" id="id2" name="id2">Articles</a></h3>
+<ul class="simple">
+<li>A Domain-Specific Language for the Generation of Optimized SIMD-Parallel Assembly Code<ul>
+<li><a class="reference" href="http://www.cas.mcmaster.ca/~anand/papers/preprints.html">http://www.cas.mcmaster.ca/~anand/papers/preprints.html</a></li>
+<li>We present a domain-specific language embedded into Haskell that allows mathematicians to formulate novel high-performance SIMD-parallel algorithms for the evaluation of special functions.</li>
+</ul>
+</li>
+<li>Generative Code Specialisation for High-Performance Monte-Carlo Simulations<ul>
+<li><a class="reference" href="http://www.cse.unsw.edu.au/~dons/papers/SCKCB07.html">http://www.cse.unsw.edu.au/~dons/papers/SCKCB07.html</a></li>
+<li>The core tenet is that, given a fixed simulator configuration, a generator in a functional language can produce low-level code that is more highly optimised than a manually implemented generic simulator.</li>
+<li>Written in Haskell. It emits specialized C source code.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section">
+<h3><a class="toc-backref" href="#id12" id="softwares" name="softwares">Softwares</a></h3>
+<ul class="simple">
+<li>FFTW <a class="reference" href="http://www.fftw.org/">http://www.fftw.org/</a><ul>
+<li>FFT compiler. The compiler is written in OCaml.</li>
+<li>Open sorce</li>
+</ul>
+</li>
+<li>ATLAS <a class="reference" href="http://math-atlas.sourceforge.net/">http://math-atlas.sourceforge.net/</a><ul>
+<li>ATLAS have a cache optimizer?</li>
+<li>Open source</li>
+</ul>
+</li>
+<li>SPIRAL <a class="reference" href="http://www.spiral.net/">http://www.spiral.net/</a><ul>
+<li>The goal of SPIRAL is to push the limits of automation in software and hardware development and optimization for digital signal processing (DSP) algorithms and other numerical kernels beyond what is possible with current tools.</li>
+<li>Closed source?</li>
+</ul>
+</li>
+<li>SPL <a class="reference" href="http://polaris.cs.uiuc.edu/~jxiong/spl/">http://polaris.cs.uiuc.edu/~jxiong/spl/</a>
+- A Language and Compiler for DSP Algorithms</li>
+</ul>
+<p>If you know more, let me know(my mail address can be available in MUDA source)</p>
+<p>endOfFile</p>
+</div>
+</div>
+</div>
+</div>
+
+
+        <div class="end">
+            <br/>
+            <br/>
+            <br/>
+            <small>
+                Page last modified <strong>Tue Feb 12 00:34:39 2008</strong>.
+            </small>
+        </div>
+    </div>
+</body>
+</html>

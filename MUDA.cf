@@ -1,0 +1,205 @@
+-- BNF grammar for MUDA language
+
+
+
+-- ==========================================================================
+--
+-- Program
+--
+-- ==========================================================================
+Program.        Prog   ::= [Struc] [Func] ;
+
+-- ==========================================================================
+--
+-- Struct
+--
+-- ==========================================================================
+[].            [Struc]  ::= ;
+(:).           [Struc]  ::= Struc [Struc] ;
+Struct.         Struc   ::= "struct" Ident "{" [MDec] "}" ";";
+(:[]).         [MDec]   ::= MDec ;
+(:).           [MDec]   ::= MDec [MDec] ;
+MDecl.          MDec    ::= Typ Ident ";" ;
+
+
+-- ==========================================================================
+--
+-- Function
+--
+-- ==========================================================================
+[].            [Func]  ::= ;
+(:).           [Func]  ::= Func [Func] ;
+Fun.            Func  ::= [FuncSpec] Typ Ident "(" [FormalDec] ")" "{" [Stm] "}" ;
+
+[].                   [FuncSpec]  ::= ;
+(:).                  [FuncSpec]  ::= FuncSpec [FuncSpec] ;
+InlineFuncSpec.        FuncSpec   ::= "inline";
+ForceInlineFuncSpec.   FuncSpec   ::= "force_inline";  -- TODO
+AlwaysInlineFuncSpec.  FuncSpec   ::= "always_inline"; -- TODO
+StaticFuncSpec.        FuncSpec   ::= "static";
+
+
+-- ==========================================================================
+--
+-- Declaration
+--
+-- ==========================================================================
+-- [].            [FormalDec]  ::= ;
+-- (:[]).         [FormalDec]  ::= FormalDec;
+-- (:).           [FormalDec]  ::= FormalDec ";" [FormalDec] ;
+FormalDecl.     FormalDec   ::= [Qual] Typ Ident;
+separator       FormalDec   ",";
+-- FormalDecl.     FormalDec   ::= Typ Ident;
+
+(:[]).         [DecInit] ::= DecInit ;
+(:).           [DecInit] ::= DecInit "," [DecInit] ;
+DeclInit.       DecInit  ::= Ident [DecInitExp];
+
+[].            [DecInitExp]  ::= ;
+(:[]).         [DecInitExp]  ::= DecInitExp;
+DExp.           DecInitExp   ::= "=" Exp;
+
+InputQual.      Qual     ::= "in" ;
+OutputQual.     Qual     ::= "out" ;
+InOutQual.      Qual     ::= "inout" ;
+ArrayQual.      Qual     ::= "array" ;
+separator       Qual     "" ;
+
+-- ==========================================================================
+--
+-- Statement
+--
+-- ==========================================================================
+SDecl.             Stm   ::= Typ [DecInit] ";" ;
+SAssign.           Stm   ::= Ident "=" Exp ";" ;
+SAssignWithField.  Stm   ::= Ident "." [Field] "=" Exp ";" ;
+SAssignWithArray.  Stm   ::= Ident "[" Exp "]" "=" Exp ";" ;
+SExp.              Stm   ::= Exp ";" ;
+SBlock.            Stm   ::= "{" [Stm] "}" ;      -- compound statment
+SWhile.            Stm   ::= "while" "(" Exp ")" Stm ;
+SIf.               Stm   ::= "if" "(" Exp ")" "{" [Stm] "}" "else" "{" [Stm] "}" ;
+-- SReturn.           Stm   ::= "return" [Stm] ";" ;
+SReturn.           Stm   ::= "return" Exp ";" ;
+SReturnVoid.       Stm   ::= "return" ";" ;
+SNew.              Stm   ::= Ident "=" "new" Integer ";" ;
+[].               [Stm]  ::= ;
+(:).              [Stm]  ::= Stm [Stm] ;
+
+
+
+-- ==========================================================================
+--
+-- Expression
+--
+-- ==========================================================================
+
+separator           Exp  "" ;
+
+-- Logical 
+EAnd.               Exp  ::= Exp  "&"       Exp1;	
+EOr.                Exp  ::= Exp  "|"       Exp1;	
+EXor.               Exp  ::= Exp  "^"       Exp1;	
+ENot.               Exp  ::= Exp  "~"       Exp1;	
+
+-- Equality
+EEq.                Exp1 ::= Exp1 "=="      Exp2;
+ENeq.               Exp1 ::= Exp1 "!="      Exp2;
+
+-- Relational
+EGt.                Exp2 ::= Exp2 ">"       Exp3;
+EGte.               Exp2 ::= Exp2 ">="      Exp3;
+ELt.                Exp2 ::= Exp2 "<"       Exp3;
+ELte.               Exp2 ::= Exp2 "<="      Exp3;
+
+-- Shift and rotate
+ESlElemWise.        Exp3 ::= Exp3 "<<"      Exp4;
+ESrElemWise.        Exp3 ::= Exp3 ">>"      Exp4;
+ESlaElemWise.       Exp3 ::= Exp3 "<<<"     Exp4;        -- arithmetic shift
+ESraElemWise.       Exp3 ::= Exp3 ">>>"     Exp4;
+ESlQWord.           Exp3 ::= Exp3 "<<|"     Exp4;
+ESrQWord.           Exp3 ::= Exp3 ">>|"     Exp4;
+ESlaQWord.          Exp3 ::= Exp3 "<<<|"    Exp4;
+ESraQWord.          Exp3 ::= Exp3 ">>>|"    Exp4;
+-- TODO: rotate, arithmetic shift
+
+-- Additive
+EAdd.               Exp4 ::= Exp4 "+"       Exp5;
+ESub.               Exp4 ::= Exp4 "-"       Exp5;
+
+-- Multiply
+EMul.               Exp5 ::= Exp5 "*"       Exp6;
+EDiv.               Exp5 ::= Exp5 "/"       Exp6;
+EDivApprox.         Exp5 ::= Exp5 "/."      Exp6; -- faster but less acculate.
+
+-- Unary
+ENeg.               Exp6 ::= "-"  Exp7;           -- e.g. -a
+
+-- Field select
+EFieldSelect.       Exp7 ::= Exp6 "." [Field];
+
+-- Array & Func
+EArray.             Exp8 ::= Exp8 "[" Exp "]" ;
+EFunc.              Exp8 ::= Ident "(" [FuncArgs] ")" ;
+
+
+-- Leaf
+EIdent.             Exp9 ::= Ident;
+--EIdentWithField.    Exp9 ::= Ident "." [Field];
+EInt.               Exp9 ::= Integer;
+EDouble.            Exp9 ::= Double;
+ECFloat.            Exp9 ::= CFloat;
+EHexadec.           Exp9 ::= Hexadecimal;
+-- EElemAccessor.      Exp9 ::= Exp9 "__" Exp9; -- TODO:
+_.                  Exp9 ::= "(" Exp ")";
+
+-- func args
+[].            [FuncArgs]  ::= ;
+(:[]).         [FuncArgs]  ::= FuncArgs;
+(:).           [FuncArgs]  ::= FuncArgs "," [FuncArgs];
+EArg.           FuncArgs   ::= Exp1;
+
+--[].            [Field] ::= ;
+(:[]).         [Field] ::= Field ;
+(:).           [Field] ::= Field "." [Field] ;
+EField.         Field  ::= Ident ;
+
+
+-- ==========================================================================
+--
+-- Type
+--
+-- ==========================================================================
+
+TName.            Typ  ::= Ident ;
+
+
+-- tokens
+
+token CFloat ('+'|'-')? (((digit+ '.' digit+)|(digit+ '.')|('.' digit+))(('e'|'E')('+'|'-')? digit+)? ('f'|'F'))|((digit+ ('e'|'E')('+'|'-')? digit+)('f'|'F'));
+
+token CDouble ('+'|'-')? (((digit+ '.' digit+)|(digit+ '.')|('.' digit+))(('e'|'E')('+'|'-')? digit+)? ('f'|'F'))|((digit+ ('e'|'E')('+'|'-')? digit+)('d'|'D'));
+
+token Hexadecimal '0' ('x'|'X') (digit | ["abcdef"] | ["ABCDEF"])+;
+
+
+
+-- pragmas
+
+_. Stm   ::= Stm ";" ;
+
+_. Exp   ::= Exp1;
+_. Exp1  ::= Exp2;
+_. Exp2  ::= Exp3;
+_. Exp3  ::= Exp4;
+_. Exp4  ::= Exp5;
+_. Exp5  ::= Exp6;
+_. Exp6  ::= Exp7;
+_. Exp7  ::= Exp8;
+_. Exp8  ::= Exp9;
+
+-- coercions Exp 7;
+
+comment "//";
+comment "/*" "*/";
+
+entrypoints Prog;

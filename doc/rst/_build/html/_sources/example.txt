@@ -1,0 +1,46 @@
+.. highlightlang:: c
+
+.. _xref_example:
+
+=======
+Example
+=======
+
+This page describes tutorial on MUDA language.
+
+Calculation of Black-Scholes option pricing
+===========================================
+
+``examples/BlackSholes`` directory in the source distribution contains MUDA ported version of Black-Scholes option pricing calculation. The origonal, reference code is taken from CUDA SDK.
+
+Reference performance result
+----------------------------
+
+The following is MUDA version of BlackScholes computation on PentiumM 1.1GHz, gcc 4.2.3 with x86 SSE backend.
+  
+=========== ========== =========
+Target            msec  MOps/sec
+=========== ========== =========
+CPU(scalar) 290.935000  2.749755
+MUDA(SSE)    74.514000 10.736237
+=========== ========== =========
+
+
+
+*CPU(scalar)* stands for the execution of original, unoptimized scalar code. A sophisticated compiler may optimize this scalar into vector code with autovectorization.
+
+*MUDA(SSE)* is the execution result of MUDA version of the code.
+
+
+Investigation
+=============
+
+I've investigated the exuection and output assembler code of Black-Scholes computation code, and found that most is dedicated for computing math functions, especially log(), exp(), and sqrt().
+
+In MUDA(with x86 SSE background), these math functions consume about 3/4 of whole computation. MUDA provides SW math code because there's no HW accelerated instruction for these function in x86/SSE.
+SW math code is vectorized, but still slow by the reason SW math routine tries to match the precision as much as possible with libc's math code.
+
+...TODO...
+
+
+endOfFile

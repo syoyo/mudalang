@@ -1,0 +1,156 @@
+.. _xref_devnote:
+
+================
+Development Note
+================
+
+Recent activities
+=================
+
+Feb 11, 2008
+  
+  I've started MUDA development blog.
+
+  http://mudadev.blogspot.com/
+
+  Now activities on MUDA development are posted to the blog, not here.
+  but `References`_ are still updated here.
+
+Dec 29, 2007
+
+  I'm reading "Efficient Utilization of SIMD Extensions". This paper is a
+  good starting point to survey automatic SIMD vectorization.
+
+  According to the papar, automaic SIMD vectorization is roughly separated
+  into 3 layers.
+
+  - Symbolic vectorization
+
+    - Do vectorization in language or application context level.
+  
+  - Straight line code vectorization
+
+    - Find a coherence in scalar code path and vectorize it?
+
+  - Special purpose compiler for vectorized code.
+
+    - Custom instruction scheduler and register allocator for vector
+      instruction for fast binary code generation.
+     
+Dec 17, 2007
+
+  I made MUDA site on Launchpad. https://launchpad.net/muda
+  I'm a newbie on Launchpad, thus just playing with Launchpad so far.
+  I'm considering to use Lauchpad site for some collaboration and managing.
+  (e.g. translation, Q&A, project management)
+
+Dec 11, 2007
+
+  Added some references on automatic tuning and code generation.
+
+Dec 10, 2007
+
+  Launched MUDA site!
+
+
+References
+==========
+
+Here is some links which is a great help to develop MUDA.
+
+Overall optimization theory
+---------------------------
+
+* How to write fast numeric code: A small introduction
+
+  - http://spiral.ece.cmu.edu:8080/pub-spiral/abstract.jsp?id=100
+  - From SPIRAL team.
+  - The algorithm is most important for optimization. Cache optimization follows. SIMD-ization is last resort(i.e. not so important)
+
+
+Memory access optimization
+--------------------------
+
+Articles
+~~~~~~~~
+
+* What every programmer should know about memory
+
+  - http://lwn.net/Articles/259710/
+  - by Ulrich Drepper
+  - Must read 
+
+* Universal Cache Miss Equations for the Memory Hierarchy 
+
+  - http://www.bestechvideos.com/2007/07/06/universal-cache-miss-equations-for-the-memory-hierarchy
+  - Google tech talk
+
+* Cache Miss Equations: An Analytical Representation of Cache Misses
+  
+  - http://citeseer.ist.psu.edu/ghosh97cache.html
+  - Good model to analyze cache misses.
+  - Implemented in SUIF
+
+Automatic SIMDization
+---------------------
+
+Articles
+~~~~~~~~
+
+* Efficient Utilization of SIMD Extensions
+  
+  - http://www.ece.cmu.edu/~franzf/papers/ieee-si.pdf
+  - Franz Franchetti, Stefan Kral, Juergen Lorenz, Christoph W. Ueberhuber. Invited paper
+  - This paper describes straight line code SIMDization, but can be used as a survey paper for SIMDization.
+
+* Automatic SIMD vectorization
+  
+  - ftp://ftp.vcpc.univie.ac.at/ projects/aurora/reports/auroratr2004-03.ps.gz
+  - Jourgen Lorenz, Ph.D thesis
+  - straight line code SIMDization.
+
+Automatic tuning, code generation
+---------------------------------
+
+Articles
+~~~~~~~~
+
+
+* A Domain-Specific Language for the Generation of Optimized SIMD-Parallel Assembly Code
+
+  - http://www.cas.mcmaster.ca/~anand/papers/preprints.html
+  - We present a domain-specific language embedded into Haskell that allows mathematicians to formulate novel high-performance SIMD-parallel algorithms for the evaluation of special functions.
+
+
+* Generative Code Specialisation for High-Performance Monte-Carlo Simulations
+
+  - http://www.cse.unsw.edu.au/~dons/papers/SCKCB07.html
+  - The core tenet is that, given a fixed simulator configuration, a generator in a functional language can produce low-level code that is more highly optimised than a manually implemented generic simulator.
+  - Written in Haskell. It emits specialized C source code.
+
+
+Softwares
+~~~~~~~~~
+
+* FFTW http://www.fftw.org/
+
+  - FFT compiler. The compiler is written in OCaml.
+  - Open sorce
+
+* ATLAS http://math-atlas.sourceforge.net/
+
+  - ATLAS have a cache optimizer?
+  - Open source
+
+* SPIRAL http://www.spiral.net/
+
+  - The goal of SPIRAL is to push the limits of automation in software and hardware development and optimization for digital signal processing (DSP) algorithms and other numerical kernels beyond what is possible with current tools.
+  - Closed source?
+
+* SPL http://polaris.cs.uiuc.edu/~jxiong/spl/
+  - A Language and Compiler for DSP Algorithms
+
+If you know more, let me know(my mail address can be available in MUDA source)
+
+
+endOfFile

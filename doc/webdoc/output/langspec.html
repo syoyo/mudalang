@@ -1,0 +1,368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <title>MUDA Language specification</title>
+    <meta http-equiv="Content-Type"
+        content="text/html; charset=utf=8" />
+    <link rel="stylesheet"
+        href="design.css"
+        type="text/css" />
+</head>
+<body>
+
+<!-- header is fixed -->
+    <div class="menu">
+    <h1><a href="index.html">MUDA : A vector language for CPU</a></h1>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="download.html">Download</a></li>
+<li><a href="tutorial.html">Tutorial</a></li>
+<li><a href="langspec.html">LangSpec</a></li>
+<li><a href="http://mudadev.blogspot.com/">Blog</a></li>
+<li><a href="devnote.html">DevNote</a></li>
+</ul>
+    <p/>
+    </div><!-- end of menu -->
+    <br/>
+    <br/>
+    <br/>
+
+
+    <div class="main">
+        <a name="startcontent" id="startcontent"></a>
+
+        <div class="document">
+<div class="section">
+<h1><a class="toc-backref" href="#id1" id="muda-language-specification" name="muda-language-specification">MUDA Language Specification</a></h1>
+<div class="contents topic">
+<p class="topic-title first"><a id="contents" name="contents">Contents</a></p>
+<ul class="simple">
+<li><a class="reference" href="#muda-language-specification" id="id1" name="id1">MUDA Language Specification</a></li>
+<li><a class="reference" href="#syntax" id="id2" name="id2">Syntax</a><ul>
+<li><a class="reference" href="#intrinsic-data-type" id="id3" name="id3">Intrinsic data type</a></li>
+<li><a class="reference" href="#structure" id="id4" name="id4">Structure</a></li>
+<li><a class="reference" href="#comment" id="id5" name="id5">Comment</a></li>
+<li><a class="reference" href="#vector-and-scalar-conversion" id="id6" name="id6">Vector and scalar conversion</a><ul>
+<li><a class="reference" href="#swizzling" id="id7" name="id7">Swizzling</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#arithmetic-operation" id="id8" name="id8">Arithmetic operation</a></li>
+<li><a class="reference" href="#compare" id="id9" name="id9">Compare</a></li>
+<li><a class="reference" href="#shift-and-rotate" id="id10" name="id10">Shift and rotate</a></li>
+<li><a class="reference" href="#logical" id="id11" name="id11">Logical</a></li>
+<li><a class="reference" href="#condition" id="id12" name="id12">Condition</a></li>
+<li><a class="reference" href="#function" id="id13" name="id13">Function</a><ul>
+<li><a class="reference" href="#argument" id="id14" name="id14">argument</a></li>
+<li><a class="reference" href="#inline" id="id15" name="id15">inline</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference" href="#builtin-function" id="id16" name="id16">Builtin function</a><ul>
+<li><a class="reference" href="#math-function" id="id17" name="id17">Math function</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id2" id="syntax" name="syntax">Syntax</a></h1>
+<div class="section">
+<h2><a class="toc-backref" href="#id3" id="intrinsic-data-type" name="intrinsic-data-type">Intrinsic data type</a></h2>
+<p>MUDA supports following intrinsic data type.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="84%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Name</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>vec</td>
+<td>floating point 4 component vector(fp x 4)</td>
+</tr>
+<tr><td>ivec</td>
+<td>integer 4 component vector(32bit x 4)</td>
+</tr>
+<tr><td>float</td>
+<td>scalar floating point value</td>
+</tr>
+<tr><td>int</td>
+<td>scalar integer value(32bit).</td>
+</tr>
+</tbody>
+</table>
+<p>In MUDA, almost all computation is done in floating point. thus <strong>vec</strong> and <strong>float</strong> are used as a primary data type. <strong>ivec</strong> and <strong>int</strong> are secondary data type and used where floating point is not suitable(e.g. amount of shifting, shuffle index, array index).</p>
+<p>Floating point is represented by single precision. Supporting double precision is <strong>TODO</strong>.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id4" id="structure" name="structure">Structure</a></h2>
+<p><strong>Note that this is not yet implemented</strong>. MUDA will support user defined structure.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id5" id="comment" name="comment">Comment</a></h2>
+<p>MUDA supports both C style comment and C++ style line comment.</p>
+<pre class="literal-block">
+/*
+ * this is a comment
+ */
+
+// this is also a comment
+</pre>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id6" id="vector-and-scalar-conversion" name="vector-and-scalar-conversion">Vector and scalar conversion</a></h2>
+<div class="section">
+<h3><a class="toc-backref" href="#id7" id="swizzling" name="swizzling">Swizzling</a></h3>
+<p>Each element in the vector variable can be accessed by swizzling.
+<strong>TODO: This feature is not yet implemented.</strong></p>
+</div>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id8" id="arithmetic-operation" name="arithmetic-operation">Arithmetic operation</a></h2>
+<p>MUDA has following 5 basic arithmetic operation.</p>
+<pre class="literal-block">
++, -, *, /, /.(approximate division)
+</pre>
+<p>/.(slash dot) is something unique for MUDA.</p>
+<p>This op lets the compiler try to use approximate division if possible.
+If the computation core of your program contains division,
+but if you do not require precise precision for division,
+use approximate division instead of usual division for faster execution.</p>
+<p>In x86/SSE2 backend implementation, approximate division op will be mapped to reciprocal estimate(<strong>rcpps</strong> instruction) and one round of Newton-Raphson, where division will be mapped to <strong>divps</strong> instruction.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id9" id="compare" name="compare">Compare</a></h2>
+<p>MUDA supports following compare operation.</p>
+<pre class="literal-block">
+&lt;, &lt;=, &gt;, &gt;=, ==, !=
+</pre>
+<p>Returned value from compare op are either all 1's(true) or all 0's(false) for each element. This is true for floating point variable. You can use results of compare op for logical op, shift op, or condition, but you <strong>should not</strong> use it for arithmetic op.</p>
+<pre class="literal-block">
+// example
+
+vec a = vec(1.0, 0.0, 2.0, 3.0);
+vec b = vec(1.0, 1.0, 1.0, 1.0);
+
+vec ret = a &gt; b;    // ret = (0x00000000, 0x00000000, 0xffffffff, 0xffffffff)
+</pre>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id10" id="shift-and-rotate" name="shift-and-rotate">Shift and rotate</a></h2>
+<p><strong>TODO: This feature is not yet implemented.</strong>
+<strong>NOTE: x86/SSE up to SSE2 does not support arbitrary bitwise shift and rotate. Thus this operation cannot be accelerated fully</strong></p>
+<p>MUDA will support shift and rotate operation.</p>
+<pre class="literal-block">
+&lt;&lt; (quad word bit-wise shift left)
+&gt;&gt; (quad word bit-wise shift right)
+&lt;&lt;| (element-wise bit shift left)
+&gt;&gt;| (element-wise bit shift right)
+
+&lt;&lt;&lt; (quad word bit-wise arithmetic shift left)
+&gt;&gt;&gt; (quad word bit-wise arithmetic shift right)
+&lt;&lt;&lt;| (element-wise bit arithmetic shift left)
+&gt;&gt;&gt;| (element-wise bit arithmetic shift right)
+
+&lt;&lt;&#64; (quad word bit-wise rotate left)
+&gt;&gt;&#64; (quad word bit-wise rotate right)
+&lt;&lt;|&#64; (element-wise bit rotate left)
+&gt;&gt;|&#64; (element-wise bit rotate right)
+</pre>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id11" id="logical" name="logical">Logical</a></h2>
+<p>MUDA supports following logical expression.</p>
+<pre class="literal-block">
+&amp;(and), |(or), ^(xor), ~(not)
+</pre>
+<p>Logical expression can be applied to floating point vector or scalar value. In this case, floating point value is treated as a bit array.</p>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id12" id="condition" name="condition">Condition</a></h2>
+<p>MUDA supports following conditional expression.</p>
+<pre class="literal-block">
+if, while
+</pre>
+<p><strong>if</strong> expression must be followed by <strong>else</strong> keyword, and then statement and else statement should have parenthesis. <strong>while</strong> should have parenthesis.</p>
+<pre class="literal-block">
+// -- OK
+
+if (a &lt; 1.0) {
+
+  b = 1.0;
+
+} else {
+
+  // do nothing.
+
+}
+
+
+// -- Bad. no parenthesis
+
+if (a &lt; 1.0) b = 1.0 else b = 2.0;
+
+
+// -- Bad. no else-statement
+
+if (a &lt; 1.0) {
+
+   b = 1.0;
+
+}
+
+// -- OK
+while (a &gt; 1.0) {
+  a = a - 0.1;
+}
+
+// -- Bad. no parenthesis
+while (a &gt; 1.0) a = a - 0.1;
+</pre>
+</div>
+<div class="section">
+<h2><a class="toc-backref" href="#id13" id="function" name="function">Function</a></h2>
+<p>MUDA can define a function, almost same for C-function declaration.</p>
+<pre class="literal-block">
+vec               myfunc() { ... };
+static vec        myfunc() { ... };
+static inline vec myfunc() { ... };
+</pre>
+<div class="section">
+<h3><a class="toc-backref" href="#id14" id="argument" name="argument">argument</a></h3>
+<p>MUDA doesn't support pointer, but you can return the value through
+function argument using output argument specifier <strong>out</strong>.</p>
+<pre class="literal-block">
+vec func(out vec ret) {
+
+  ret = 1.0;  // return value.
+
+}
+</pre>
+<p>On the counter part of <strong>out</strong>, MUDA provides input argument specifier <strong>in</strong>.
+But this is default and usually you don't need to express it.</p>
+<pre class="literal-block">
+// Explicitly specify argument `a' is input argument.
+vec func(in vec a) {
+
+  return a;
+
+}
+</pre>
+</div>
+<div class="section">
+<h3><a class="toc-backref" href="#id15" id="inline" name="inline">inline</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="24%" />
+<col width="76%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Name</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>inline</td>
+<td>Usual inline.</td>
+</tr>
+<tr><td>force_inline</td>
+<td>Tell compiler to inline the function always.</td>
+</tr>
+<tr><td>always_inline</td>
+<td>Same as force_inline.</td>
+</tr>
+</tbody>
+</table>
+<p>TODO: remove <strong>always_inline</strong> keyword.</p>
+</div>
+</div>
+</div>
+<div class="section">
+<h1><a class="toc-backref" href="#id16" id="builtin-function" name="builtin-function">Builtin function</a></h1>
+<p>List of builtin functions.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">function name</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>vec(a)</td>
+<td>Returns vector value replicated with <em>a</em>. <em>a</em> must be scalar.</td>
+</tr>
+<tr><td>vec(a, b, c, d)</td>
+<td>Returns vector value constructed from 4 scalar values.
+<em>a</em>, <em>b</em>, <em>c</em>, <em>d</em> are scalar.</td>
+</tr>
+<tr><td>sel(a, b, mask)</td>
+<td>Take <em>b</em> if mask is true, <em>a</em> if false. Do it in
+element-wise.  <em>a</em>, <em>b</em> and <em>mask</em> are type of <strong>vec</strong>.</td>
+</tr>
+<tr><td>extract(a, i)</td>
+<td>Extract <em>i</em>'th element from vector <em>a</em>. <em>i</em> must be immediate
+value and should be 0(preferred element), 1, 2 or 3.</td>
+</tr>
+<tr><td>more to come</td>
+<td>Be patient :-)</td>
+</tr>
+</tbody>
+</table>
+<div class="section">
+<h2><a class="toc-backref" href="#id17" id="math-function" name="math-function">Math function</a></h2>
+<p>This is TODO. MUDA will support fast, approximate but as accurate as possible SIMD-optimized math functions.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="52%" />
+<col width="27%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">function name</th>
+<th class="head">Input Range</th>
+<th class="head">Maximum error in ulp</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>log2(x)</td>
+<td>x in [0.0 .. +Inf)</td>
+<td>2</td>
+</tr>
+<tr><td>sqrt(x)</td>
+<td>x in [0.0 .. +Inf)</td>
+<td>2</td>
+</tr>
+<tr><td>more to come</td>
+<td>Be patient :-)</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>endOfFile</p>
+</div>
+</div>
+</div>
+
+
+        <div class="end">
+            <br/>
+            <br/>
+            <br/>
+            <small>
+                Page last modified <strong>Wed Feb 13 02:39:05 2008</strong>.
+            </small>
+        </div>
+    </div>
+</body>
+</html>

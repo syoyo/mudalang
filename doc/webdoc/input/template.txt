@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <title><% title %></title>
+    <meta http-equiv="Content-Type"
+        content="text/html; charset=<% final_encoding %>" />
+    <link rel="stylesheet"
+        href="<% path_to_root %>design.css"
+        type="text/css" />
+</head>
+<body>
+
+<!-- header is fixed -->
+    <div class="menu">
+    <h1><a href="index.html">MUDA : A vector language for CPU</a></h1>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="download.html">Download</a></li>
+<li><a href="tutorial.html">Tutorial</a></li>
+<li><a href="langspec.html">LangSpec</a></li>
+<li><a href="http://mudadev.blogspot.com/">Blog</a></li>
+<li><a href="devnote.html">DevNote</a></li>
+</ul>
+    <p/>
+    </div><!-- end of menu -->
+    <br/>
+    <br/>
+    <br/>
+
+
+    <div class="main">
+        <a name="startcontent" id="startcontent"></a>
+
+        <% body %>
+
+        <div class="end">
+            <br/>
+            <br/>
+            <br/>
+            <small>
+                Page last modified <strong><% modtime %></strong>.
+            </small>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,74 @@
+restindex
+	crumb: download	
+	format: rest
+	page-title: Download
+	encoding: utf-8
+	output-encoding: None
+/restindex
+
+Snapshot
+========
+
+So far, MUDA has no official releases since its in early development phase.
+You can download development source tree from svn repository. 
+
+::
+
+  $ svn co https://lucille.svn.sourceforge.net/svnroot/lucille/angelina/haskellmuda muda
+
+**CAUTION** URL begins with *https*, not http.
+
+Requirements
+============
+
+MUDA compiler **mudah** is written totally in Haskell.
+
+To build MUDA compiler, You'll need Haskell compiler, especially GHC.
+You can grab GHC from http://www.haskell.org/ghc/
+
+Supported platform
+==================
+
+MUDA compiler may works any platform where Haskell compiler GHC works(e.g. Linux, Win32, Mac OS X, BSD, etc).
+
+MUDA genrated SIMD-C code may be compiled on following platforms.
+
+* x86/SSE backend
+
+  - HW: CPUs which supports SSE2.
+  - Compilers:
+  
+    - gcc, which supports **-msse2** compiler option.
+    - icc, cl(Visual C++)
+
+* LLVM IR backend
+
+  - TODO
+
+* PPC/AltiVec backend
+
+  - TODO
+
+
+Build
+=====
+
+After checking out MUDA source tree from above svn repository, type following
+
+::
+
+  $ cd muda
+  $ make
+
+  # MUDA compiler named 'mudah' is built at top directory.
+
+  $ make test  <- this is optional
+  
+
+Let's try!
+==========
+
+If you success to build MUDA compiler, go tutorial_ to quickly learn MUDA language.
+
+.. _tutorial: tutorial.html
+

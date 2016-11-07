@@ -1,0 +1,29 @@
+- Note
+
+  - TODOs:
+
+    - language features
+
+      - math functions
+  
+        max, min, log, exp, sin, cos, tan, trunc, frac, sqrt, round,
+  
+      - shuffle
+  
+        No vec_perm equivalent in SSE, how to do shuffle from 2 operand in SSE?
+  
+      - shift
+  
+        SSE can do shift/rotate in a limited way compared to AltiVec...
+
+      - struct
+
+      - array
+
+
+    - automatic optimization
+
+      - memory optimizations
+
+        - automatic finding of parameters which minimizes cache misses.
+ 

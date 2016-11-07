@@ -1,0 +1,8 @@
+
+PentiumM, 1.1GHz, gcc 4.2.3
+===========================
+
+[Perf] CPU  = 291.085000 (msec)  2.748338 MOps/sec
+[Perf] MUDA = 74.298400 (msec)  10.767392 MOps/sec
+
+MUDA version is about 3.9 times faster than scalar code. 

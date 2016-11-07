@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Development Note &mdash; MUDA document v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+          URL_ROOT:    '',
+          VERSION:     '0.1',
+          COLLAPSE_MODINDEX: false,
+          FILE_SUFFIX: ''
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/interface.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="contents" title="Global table of contents" href="contents.html" />
+    <link rel="index" title="Global index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="MUDA document v0.1 documentation" href="index.html" />
+    <link rel="prev" title="MUDA language specification" href="langspec.html" />
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="langspec.html" title="MUDA language specification"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">MUDA document v0.1 documentation</a> &raquo;</li>
+      </ul>
+    </div>
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section">
+<h1 id="development-note"><span id="xref-devnote"></span>Development Note<a class="headerlink" href="#development-note" title="Permalink to this headline">¶</a></h1>
+<div class="section">
+<h2 id="recent-activities">Recent activities<a class="headerlink" href="#recent-activities" title="Permalink to this headline">¶</a></h2>
+<p>Feb 11, 2008</p>
+<blockquote>
+<p>I&#8217;ve started MUDA development blog.</p>
+<p><a class="reference" href="http://mudadev.blogspot.com/">http://mudadev.blogspot.com/</a></p>
+<p>Now activities on MUDA development are posted to the blog, not here.
+but <a class="reference" href="#references">References</a> are still updated here.</p>
+</blockquote>
+<p>Dec 29, 2007</p>
+<blockquote>
+<p>I&#8217;m reading &#8220;Efficient Utilization of SIMD Extensions&#8221;. This paper is a
+good starting point to survey automatic SIMD vectorization.</p>
+<p>According to the papar, automaic SIMD vectorization is roughly separated
+into 3 layers.</p>
+<ul class="simple">
+<li>Symbolic vectorization<ul>
+<li>Do vectorization in language or application context level.</li>
+</ul>
+</li>
+<li>Straight line code vectorization<ul>
+<li>Find a coherence in scalar code path and vectorize it?</li>
+</ul>
+</li>
+<li>Special purpose compiler for vectorized code.<ul>
+<li>Custom instruction scheduler and register allocator for vector
+instruction for fast binary code generation.</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<p>Dec 17, 2007</p>
+<blockquote>
+I made MUDA site on Launchpad. <a class="reference" href="https://launchpad.net/muda">https://launchpad.net/muda</a>
+I&#8217;m a newbie on Launchpad, thus just playing with Launchpad so far.
+I&#8217;m considering to use Lauchpad site for some collaboration and managing.
+(e.g. translation, Q&amp;A, project management)</blockquote>
+<p>Dec 11, 2007</p>
+<blockquote>
+Added some references on automatic tuning and code generation.</blockquote>
+<p>Dec 10, 2007</p>
+<blockquote>
+Launched MUDA site!</blockquote>
+</div>
+<div class="section">
+<h2 id="references">References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>Here is some links which is a great help to develop MUDA.</p>
+<div class="section">
+<h3 id="overall-optimization-theory">Overall optimization theory<a class="headerlink" href="#overall-optimization-theory" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>How to write fast numeric code: A small introduction<ul>
+<li><a class="reference" href="http://spiral.ece.cmu.edu:8080/pub-spiral/abstract.jsp?id=100">http://spiral.ece.cmu.edu:8080/pub-spiral/abstract.jsp?id=100</a></li>
+<li>From SPIRAL team.</li>
+<li>The algorithm is most important for optimization. Cache optimization follows. SIMD-ization is last resort(i.e. not so important)</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section">
+<h3 id="memory-access-optimization">Memory access optimization<a class="headerlink" href="#memory-access-optimization" title="Permalink to this headline">¶</a></h3>
+<div class="section">
+<h4 id="articles">Articles<a class="headerlink" href="#articles" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>What every programmer should know about memory<ul>
+<li><a class="reference" href="http://lwn.net/Articles/259710/">http://lwn.net/Articles/259710/</a></li>
+<li>by Ulrich Drepper</li>
+<li>Must read</li>
+</ul>
+</li>
+<li>Universal Cache Miss Equations for the Memory Hierarchy<ul>
+<li><a class="reference" href="http://www.bestechvideos.com/2007/07/06/universal-cache-miss-equations-for-the-memory-hierarchy">http://www.bestechvideos.com/2007/07/06/universal-cache-miss-equations-for-the-memory-hierarchy</a></li>
+<li>Google tech talk</li>
+</ul>
+</li>
+<li>Cache Miss Equations: An Analytical Representation of Cache Misses<ul>
+<li><a class="reference" href="http://citeseer.ist.psu.edu/ghosh97cache.html">http://citeseer.ist.psu.edu/ghosh97cache.html</a></li>
+<li>Good model to analyze cache misses.</li>
+<li>Implemented in SUIF</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section">
+<h3 id="automatic-simdization">Automatic SIMDization<a class="headerlink" href="#automatic-simdization" title="Permalink to this headline">¶</a></h3>
+<div class="section">
+<h4 id="id1">Articles<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>Efficient Utilization of SIMD Extensions<ul>
+<li><a class="reference" href="http://www.ece.cmu.edu/~franzf/papers/ieee-si.pdf">http://www.ece.cmu.edu/~franzf/papers/ieee-si.pdf</a></li>
+<li>Franz Franchetti, Stefan Kral, Juergen Lorenz, Christoph W. Ueberhuber. Invited paper</li>
+<li>This paper describes straight line code SIMDization, but can be used as a survey paper for SIMDization.</li>
+</ul>
+</li>
+<li>Automatic SIMD vectorization<ul>
+<li><a class="reference" href="ftp://ftp.vcpc.univie.ac.at/">ftp://ftp.vcpc.univie.ac.at/</a> projects/aurora/reports/auroratr2004-03.ps.gz</li>
+<li>Jourgen Lorenz, Ph.D thesis</li>
+<li>straight line code SIMDization.</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section">
+<h3 id="automatic-tuning-code-generation">Automatic tuning, code generation<a class="headerlink" href="#automatic-tuning-code-generation" title="Permalink to this headline">¶</a></h3>
+<div class="section">
+<h4 id="id2">Articles<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>A Domain-Specific Language for the Generation of Optimized SIMD-Parallel Assembly Code<ul>
+<li><a class="reference" href="http://www.cas.mcmaster.ca/~anand/papers/preprints.html">http://www.cas.mcmaster.ca/~anand/papers/preprints.html</a></li>
+<li>We present a domain-specific language embedded into Haskell that allows mathematicians to formulate novel high-performance SIMD-parallel algorithms for the evaluation of special functions.</li>
+</ul>
+</li>
+<li>Generative Code Specialisation for High-Performance Monte-Carlo Simulations<ul>
+<li><a class="reference" href="http://www.cse.unsw.edu.au/~dons/papers/SCKCB07.html">http://www.cse.unsw.edu.au/~dons/papers/SCKCB07.html</a></li>
+<li>The core tenet is that, given a fixed simulator configuration, a generator in a functional language can produce low-level code that is more highly optimised than a manually implemented generic simulator.</li>
+<li>Written in Haskell. It emits specialized C source code.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section">
+<h4 id="softwares">Softwares<a class="headerlink" href="#softwares" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li>FFTW <a class="reference" href="http://www.fftw.org/">http://www.fftw.org/</a><ul>
+<li>FFT compiler. The compiler is written in OCaml.</li>
+<li>Open sorce</li>
+</ul>
+</li>
+<li>ATLAS <a class="reference" href="http://math-atlas.sourceforge.net/">http://math-atlas.sourceforge.net/</a><ul>
+<li>ATLAS have a cache optimizer?</li>
+<li>Open source</li>
+</ul>
+</li>
+<li>SPIRAL <a class="reference" href="http://www.spiral.net/">http://www.spiral.net/</a><ul>
+<li>The goal of SPIRAL is to push the limits of automation in software and hardware development and optimization for digital signal processing (DSP) algorithms and other numerical kernels beyond what is possible with current tools.</li>
+<li>Closed source?</li>
+</ul>
+</li>
+<li>SPL <a class="reference" href="http://polaris.cs.uiuc.edu/~jxiong/spl/">http://polaris.cs.uiuc.edu/~jxiong/spl/</a>
+- A Language and Compiler for DSP Algorithms</li>
+</ul>
+<p>If you know more, let me know(my mail address can be available in MUDA source)</p>
+<p>endOfFile</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3>Table Of Contents</h3>
+            <ul>
+<li><a class="reference" href="">Development Note</a><ul>
+<li><a class="reference" href="#recent-activities">Recent activities</a></li>
+<li><a class="reference" href="#references">References</a><ul>
+<li><a class="reference" href="#overall-optimization-theory">Overall optimization theory</a></li>
+<li><a class="reference" href="#memory-access-optimization">Memory access optimization</a><ul>
+<li><a class="reference" href="#articles">Articles</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#automatic-simdization">Automatic SIMDization</a><ul>
+<li><a class="reference" href="#id1">Articles</a></li>
+</ul>
+</li>
+<li><a class="reference" href="#automatic-tuning-code-generation">Automatic tuning, code generation</a><ul>
+<li><a class="reference" href="#id2">Articles</a></li>
+<li><a class="reference" href="#softwares">Softwares</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="langspec.html" title="previous chapter">MUDA language specification</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/devnote.txt">Show Source</a></li>
+            </ul>
+            <h3>Quick search</h3>
+            <form class="search" action="search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="langspec.html" title="MUDA language specification"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">MUDA document v0.1 documentation</a> &raquo;</li>
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2008, Syoyo Fujita.
+      Last updated on Jul 30, 2008.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <title>MUDA home: A vector language for CPU</title>
+    <meta http-equiv="Content-Type"
+        content="text/html; charset=utf-8" />
+    <link rel="stylesheet"
+        href="design.css"
+        type="text/css" />
+</head>
+<body>
+
+<!-- header is fixed -->
+    <div class="menu">
+    <h1><a href="index.html">MUDA : A vector language for CPU</a></h1>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="download.html">Download</a></li>
+<li><a href="tutorial.html">Tutorial</a></li>
+<li><a href="langspec.html">LangSpec</a></li>
+<li><a href="http://mudadev.blogspot.com/">Blog</a></li>
+<li><a href="devnote.html">DevNote</a></li>
+</ul>
+    <p/>
+    </div><!-- end of menu -->
+    <br/>
+    <br/>
+    <br/>
+
+
+    <div class="main">
+        <a name="startcontent" id="startcontent"></a>
+
+        <div class="document" id="muda">
+<h1 class="title">MUDA</h1>
+<p><strong>MUDA(MUltiple Data Accelerator) language</strong> is a short-vector SIMD language. MUDA's syntax is almost like GLSL(OpenGL Shading Language), but the compiled code runs on <strong>CPU</strong>, since MUDA compiler outputs plain SIMD-C code(for now, x86 SSE is supported).</p>
+<pre class="literal-block">
+// SSE code                               // MUDA code
+__m128 func(__m128 a, __m128 b) {         vec func(vec a, vec b) {
+
+    return _mm_add_ps(                        return a * a + b;
+               _mm_mul_ps(a, a), b);
+
+}                                         }
+</pre>
+<ul class="simple">
+<li><a class="reference" href="download.html">Download</a></li>
+<li><a class="reference" href="tutorial.html">Tutorial</a></li>
+<li><a class="reference" href="langspec.html">MUDA Language Specification</a></li>
+<li><a class="reference" href="devlog.html">DevLog</a> (development logs. it would be updated frequently)</li>
+</ul>
+<div class="section">
+<h1><a id="for-whom" name="for-whom">For whom?</a></h1>
+<p>MUDA is designed to accelerate your performance oriented program by using CPU's SIMD instruction.</p>
+<p>If your program is floating point compute-intensive, it would be worth to use MUDA language. MUDA compiler emits a SIMD-C code, thus you can easily bind MUDA code and your C/C++ code.</p>
+<p>Here is an application area.</p>
+<ul class="simple">
+<li>offline/online graphics</li>
+<li>quantitative finance</li>
+<li>simulation</li>
+<li>data mining</li>
+</ul>
+</div>
+<div class="section">
+<h1><a id="news" name="news">NEWS</a></h1>
+<ul class="simple">
+<li>17 Dec, 2007: Added new MUDA author!</li>
+<li>10 Dec, 2007: Initial MUDA site opens!</li>
+</ul>
+</div>
+<div class="section">
+<h1><a id="todos" name="todos">TODOs</a></h1>
+<ul class="simple">
+<li>LLVM IR backend</li>
+<li>x86 SSE: Support for SSE3/4/5</li>
+<li>Automatic optimizer with AMD codeanalyst, HW performance counter, etc.</li>
+<li>Automatic cache optimization.</li>
+<li>Message based paralellisation.</li>
+<li>Some annotation techniques(testing, precision control, debugging, etc)</li>
+</ul>
+</div>
+<div class="section">
+<h1><a id="muda-authors" name="muda-authors">MUDA Authors</a></h1>
+<ul class="simple">
+<li>Syoyo Fujita : <a class="reference" href="http://lucille.atso-net.jp/blog/">http://lucille.atso-net.jp/blog/</a></li>
+<li>Luca Barbato : <a class="reference" href="http://dev.gentoo.org/~lu_zero/">http://dev.gentoo.org/~lu_zero/</a><ul>
+<li>VMX(AltiVec) backend</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+        <div class="end">
+            <br/>
+            <br/>
+            <br/>
+            <small>
+                Page last modified <strong>Tue Dec 18 01:48:02 2007</strong>.
+            </small>
+        </div>
+    </div>
+</body>
+</html>
