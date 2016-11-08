@@ -22,8 +22,8 @@ extern "C" {
 #include <sys/time.h>
 #endif
 
-#ifdef __SSE__
-#include <xmmintrin.h>
+#ifdef __SSE2__
+#include <emmintrin.h>
 #endif
 
 typedef union
