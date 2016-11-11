@@ -7,8 +7,9 @@ import re;
 #
 # Config
 #
-mudahCmd = ".." + os.path.sep + "mudah"
+mudahCmd = ".." + os.path.sep + "mudah --sse "
 compiler = "gcc -c -msse2"
+compiler += " -I../include -I./ "
 
 files = os.popen('ls *.mu').read().split();
 
