@@ -26,12 +26,20 @@ extern "C" {
 #include <xmmintrin.h>
 #endif
 
+#ifdef __ARM_NEON__
+#include "SSE2NEON.h"
+//#include <arm_neon.h>
+#endif
+
 typedef union
 {
 #ifdef __SSE__
 	__m128  v;
 	__m128i vi;
-#endif	
+#elif defined(__ARM_NEON__)
+	float32x4_t v;
+	int32x4_t vi;
+#endif
 
 	float f[4];
 
@@ -41,7 +49,9 @@ typedef union
 {
 #ifdef __SSE__
 	struct { __m128d  v[2]; };
-#endif	
+#elif defined(__ARM_NEON__)
+	struct { float64x2_t v[2]; };
+#endif
 
 	double f[4];
 

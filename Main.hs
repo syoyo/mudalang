@@ -19,6 +19,7 @@ import qualified CodeGenSSE
 import qualified CodeGenAVX
 import qualified CodeGenVMX
 import qualified CodeGenLLVM
+import qualified CodeGenNEON
 import qualified Syntax
 import qualified Simplify
 import qualified NameSpace
@@ -30,9 +31,10 @@ data CodeGenBackend =   SSE2Backend  -- x86/SSE2
                       | SSE5Backend  -- AMD SSE5            -- TODO?
                       | AVXBackend   -- Intel AVX           -- TODO?
                       | VMXBackend   -- PPC/VMX(AltiVec)
-                      | SPEBackend   -- Cell/SPE            -- TODO
+                      | SPEBackend   -- Cell/SPE            -- TODO?
                       | CBackend     -- Plain C code        -- TODO?
                       | LLVMBackend  -- LLVM IR(.ll)       
+                      | NEONBackend  -- ARM NEON
                         deriving (Show, Eq)
 
 getCodeGenName :: CodeGenBackend -> String
@@ -45,6 +47,7 @@ getCodeGenName cg = case cg of
   SPEBackend   -> "spe"
   CBackend     -> "c"
   LLVMBackend  -> "llvm"
+  NEONBackend  -> "neon"
 
 --
 -- For command option handling
@@ -119,6 +122,7 @@ parseTree b flags p s baseName =
                           VMXBackend   -> CodeGenVMX.printTree ir
                           LLVMBackend  -> CodeGenLLVM.printTree ir
                           AVXBackend   -> CodeGenAVX.printTree ir
+                          NEONBackend  -> CodeGenNEON.printTree ir
 
                          emitHeaderStr b ir = case b of
 
@@ -126,6 +130,7 @@ parseTree b flags p s baseName =
                           VMXBackend   -> CodeGenVMX.printTree ir
                           LLVMBackend  -> CodeGenLLVM.printTree ir
                           AVXBackend   -> CodeGenAVX.printHeader ir
+                          NEONBackend   -> CodeGenNEON.printHeader ir
 
                          emitIntrinHeaderStr b = case b of
 
@@ -133,6 +138,7 @@ parseTree b flags p s baseName =
                           AVXBackend   -> CodeGenAVX.printIntrinsicHeader
                           -- VMXBackend   -> CodeGenVMX.printIntrinsicHeader
                           LLVMBackend  -> CodeGenLLVM.printIntrinsicHeader
+                          NEONBackend  -> CodeGenNEON.printIntrinsicHeader
 
 runFile :: CodeGenBackend -> [MUDAFlag] -> Verbosity -> ParseFun AbsMUDA.Prog -> FilePath -> String -> IO ()
 runFile b flags v p f n =
@@ -143,15 +149,16 @@ runFile b flags v p f n =
 
 mudahOptions :: [OptDescr MUDAFlag]
 mudahOptions =
-  [ Option ['o']   ["output"]    (OptArg outp "FILE")          "output FILE"
-  , Option ['v']   ["version"]   (NoArg Version)               "show version"
-  , Option ['s']   ["sse"]       (NoArg (Backend SSE2Backend)) "SSE2 backend"
-  , Option ['p']   ["sse4"]      (NoArg (Backend SSE4Backend)) "SSE4 backend"
-  , Option ['a']   ["avx"]       (NoArg (Backend AVXBackend))  "AVX backend"
-  , Option ['m']   ["vmx"]       (NoArg (Backend VMXBackend))  "VMX backend"
-  , Option ['l']   ["llvm"]      (NoArg (Backend LLVMBackend)) "LLVM backend"
-  , Option ['d']   ["debug"]     (NoArg Debug)                 "Debug"
-  , Option ['n']   ["noheader"]  (NoArg NoHeader)              "do not emit header"
+  [ Option ['o']   ["output"]    (OptArg outp "FILE")            "output FILE"
+  , Option ['v']   ["version"]   (NoArg Version)                 "show version"
+  , Option ['s']   ["sse"]       (NoArg (Backend SSE2Backend))   "SSE2 backend"
+  , Option ['p']   ["sse4"]      (NoArg (Backend SSE4Backend))   "SSE4 backend"
+  , Option ['a']   ["avx"]       (NoArg (Backend AVXBackend))    "AVX backend"
+  , Option ['m']   ["vmx"]       (NoArg (Backend VMXBackend))    "VMX backend"
+  , Option ['l']   ["llvm"]      (NoArg (Backend LLVMBackend))   "LLVM backend"
+  , Option ['e']   ["neon"]      (NoArg (Backend NEONBackend))   "NEON backend"
+  , Option ['d']   ["debug"]     (NoArg Debug)                   "Debug"
+  , Option ['n']   ["noheader"]  (NoArg NoHeader)                "do not emit header"
   , Option ['i']   ["nointrinheader"]  (NoArg NoIntrinsicHeader) "do not emit intrinsic header"
   ] 
 
