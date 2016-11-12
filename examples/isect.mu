@@ -15,7 +15,7 @@ static inline vec dot4(vec ax, vec ay, vec az, vec bx, vec by, vec bz)
 // 1 ray - 4 triangles intersection.
 // Assume that, for ray data, same value is copied over 4 elements. 
 //
-vec
+static inline vec
 isect(vec rox, vec roy, vec roz,
       vec rdx, vec rdy, vec rdz,
       vec v0x, vec v0y, vec v0z,
