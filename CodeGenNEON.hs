@@ -270,7 +270,7 @@ prtApproxDivOp sym e0 e1 = concatD
     tmpRegName = rcpRegName ++ "_tmp"
 
 --
--- Not is mapped to _mm_andnot_ps(x, 0xffffffff)
+-- Not is mapped to vbicq_s32(x, 0xffffffff)
 --                  -> ~x & 0xffffffff
 --                  -> ~x
 --
@@ -278,10 +278,10 @@ prtNotOp sym exp = concatD
   [ prt exp
   , prtSymConstDef sym
   , docStr "="
-  , docStr "_mm_andnot_ps("
+  , docStr "vbicq_s32("
   , prtSymOfExp exp
   , docStr ","
-  , docStr "(float32x4_t)_mm_set1_epi32(0xffffffff)"
+  , docStr "(float32x4_t)vdupq_n_u32(0xffffffff)"
   , docStr ")"
   , docStr ";"
   ]
@@ -370,7 +370,7 @@ prtFtoV sym exp = concatD
 
     [ prtSymConstDefN sym 1
     , docStr "="
-    , docStr "_mm_set_ps1( "
+    , docStr "vdupq_n_f321( "
     , prtSymOfExpN exp 1
     , docStr " )"
     , docStr ";"
@@ -386,18 +386,19 @@ prtDtoDVN sym exp n = concatD
     
     , prtSymConstDefN sym n
     , docStr "="
-    , docStr "_mm_set_pd1( "
+    , docStr "vdupq_n_f64( "
     , prtSymOfExpN exp 1        -- exp should be scalar.
     , docStr " )"
     , docStr ";"
     ]
 
+-- Signed int
 prtItoIV :: Sym.Sym -> IR.Exp -> Doc
 prtItoIV sym exp = concatD
 
     [ prtSymConstDefN sym 1
     , docStr "="
-    , docStr "_mm_set1_epi32( "
+    , docStr "vdupq_n_s32( "
     , prtSymOfExpN exp 1
     , docStr " )"
     , docStr ";"
@@ -407,10 +408,10 @@ prtItoIV sym exp = concatD
 -- Emits string such like,
 --
 --  float tmpVar[4];
---  _mm_storeu_ps(tmpVar, v);
+--  vst1q_f32(tmpVar, v);
 --  float fvar = tmpVar[0];
 --
--- Use _mm_storeu_ps for safety for now,
+-- Use vst1q_f32 for safety for now,
 -- but once it is guaranteed that the address stored is aligned to 16 bytes,
 -- we could use _mm_store_ps
 -- 
@@ -424,7 +425,7 @@ prtVtoF sym exp =
     docStr $ strOfType T.F,
     docStr $ tmpSymStr ++ "[4]",
     docStr ";",
-    docStr "_mm_storeu_ps",
+    docStr "vst1q_f32",
     docStr "(",
     docStr tmpSymStr,
     docStr ",",
@@ -446,10 +447,10 @@ prtVtoF sym exp =
 -- Emits string such like,
 --
 --  double tmpVar[2];
---  _mm_storeu_pd(tmpVar, v);
+--  vst1q_f64(tmpVar, v);
 --  double fvar = tmpVar[0];
 --
--- Use _mm_storeu_pd for safety for now,
+-- Use vst1q_f64 for safety for now,
 -- but once it is guaranteed that the address stored is aligned to 16 bytes,
 -- we could use _mm_store_pd
 -- 
@@ -462,7 +463,7 @@ prtDVtoD sym exp =
     docStr $ strOfType T.D,
     docStr $ tmpSymStr ++ "[2]",
     docStr ";",
-    docStr "_mm_storeu_pd",
+    docStr "vst1q_f64",
     docStr "(",
     docStr tmpSymStr,
     docStr ",",
@@ -484,14 +485,14 @@ prtDVtoD sym exp =
 -- a      : float32x4_t
 -- r0, r1 : float64x2_t
 --
--- r0 = _mm_cvtps_pd(a)
--- r1 = _mm_cvtps_pd(_mm_movehl_ps(a, a))
+-- r0 = vcvt_f64_f32(a)
+-- r1 = vcvt_high_f64_f32(a)
 --
 prtVtoDV :: Sym.Sym -> IR.Exp -> Doc
 prtVtoDV sym exp = concatD
   [ prtSymConstDefN sym 1
   , docStr "="
-  , docStr "_mm_cvtps_pd("
+  , docStr "vcvt_f64_f32("
   , prtSymOfExpN exp 1
   , docStr ")"
   , docStr ";"
@@ -500,11 +501,9 @@ prtVtoDV sym exp = concatD
 
   , prtSymConstDefN sym 2
   , docStr "="
-  , docStr "_mm_cvtps_pd(_mm_movehl_ps("
+  , docStr "vcvt_high_f64_f32("
   , prtSymOfExpN exp 1
-  , docStr ","
-  , prtSymOfExpN exp 1
-  , docStr "))"
+  , docStr ")"
   , docStr ";"
   ]
 
@@ -552,14 +551,14 @@ prtIVtoI sym exp =
 -- emit code such like,
 --
 --   float tmp[4];
---   _mm_storeu_ps(tmp, v);
+--   vst1q_f32(tmp, v);
 --
 prtVtoArray :: T.Typ -> Sym.Sym -> String -> IR.Exp -> Doc
 prtVtoArray ty sym tmpStr exp =
   concatD [ docStr $ strOfType ty
           , docStr $ tmpStr ++ "[4]"
           , docStr ";"
-          , docStr "_mm_storeu_ps"
+          , docStr "vst1q_f32"
           , docStr "("
           , docStr tmpStr
           , docStr ","
@@ -702,38 +701,38 @@ instance CodeGenNEON IR.Exp where
     -- TODO: parameterize bin op str
     --
     IR.EAnd   sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "_mm_and_ps"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "_mm_and_si128" sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "_mm_and_pd"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vandq_f32"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "vandq_s32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "vandq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: and"
 
     IR.EOr    sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "_mm_or_ps"     sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "_mm_or_si128"  sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "_mm_or_pd"     sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vorq_f32"     sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "vorq_s32"  sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "vorq_f64"     sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: or"
-    IR.EXor   sym e0 e1       -> prtBinOpN   "_mm_xor_ps"    sym e0 e1 (vLen sym)
+    IR.EXor   sym e0 e1       -> prtBinOpN   "veorq_s32"    sym e0 e1 (vLen sym)
     IR.ENot   sym e0 e1       -> prtBinOp    "_mm_todo_ps"   sym e0 e1 -- TODO
     IR.EEq    sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "_mm_cmpeq_ps"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "_mm_cmpeq_epi32" sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "_mm_cmpeq_pd"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vceq_f32"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "vceq_s32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "vceq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: Eq"
 
-    IR.ENeq   sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "_mm_cmpneq_ps"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "_mm_cmpneq_epi32" sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "_mm_cmpneq_epi32" sym e0 e1 (vLen sym)
+    IR.ENeq   sym e0 e1 -- !eq
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "_mm_todo_cmpneq_ps"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "_mm_todo_cmpneq_epi32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "_mm_todo_cmpneq_epi32" sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: Neq"
 
     IR.EGt    sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "_mm_cmpgt_ps"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "_mm_cmpgt_epi32" sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "_mm_cmpgt_pd"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vcgtq_f32"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "vcgtq_s32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "cvgtq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: Gt"
 
     IR.EGte   sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "_mm_cmpge_ps"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vcge_f32"    sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> concatD
       
         [ prt e0
@@ -751,14 +750,14 @@ instance CodeGenNEON IR.Exp where
       | otherwise              -> error "TODO: Gte"
 
     IR.ELt    sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "_mm_cmplt_ps"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "_mm_cmpgt_epi32" sym e1 e0 (vLen sym) -- Flipped.
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "_mm_cmplt_pd"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vcltq_f32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "vcltq_s32" sym e0 e1 (vLen sym) 
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "vcltq_f64" sym e0 e1 (vLen sym)
       | otherwise              -> error $ "TODO: Lt" ++ show e
 
     IR.ELte   sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "_mm_cmple_ps"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "_mm_cmple_pd"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vclteq_f32"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "vclteq_f64"    sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> concatD
 
         [ prt e0
@@ -781,7 +780,7 @@ instance CodeGenNEON IR.Exp where
         [ prt exp
         , prtSymConstDefN sym 1
         , docStr "="
-        , docStr "vmulq_f32(_mm_set_ps1(-1.0f), "
+        , docStr "vmulq_f32(vdupq_n_f321(-1.0f), "
         , prtSymOfExpN exp 1
         , docStr ")"
         , docStr ";"
@@ -796,26 +795,26 @@ instance CodeGenNEON IR.Exp where
 
     IR.EAdd   sym e0 e1
       | (tyOfExp e0) == T.Vec  -> prtBinOpN "vaddq_f32"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "_mm_add_epi32" sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "_mm_add_pd"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "vaddq_s32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "vaddq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: add"
 
     IR.ESub   sym e0 e1
       | (tyOfExp e0) == T.Vec  -> prtBinOpN "vsubq_f32"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "_mm_sub_epi32" sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "_mm_sub_pd"  sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "vsubq_s32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "vsubq_f64"  sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: sub"
 
     IR.EMul   sym e0 e1
       | (tyOfExp e0) == T.Vec  -> prtBinOpN  "vmulq_f32"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN  "_mm_mul_epi32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN  "vmulq_s32" sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.DVec -> prtBinOpN  "vmulq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: mul"
 
     IR.EDiv   sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN  "_mm_div_ps" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN  "vdiv_f32" sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> prtBinOpN  "TODO_idiv"  sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN  "_mm_div_pd" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN  "vdiv_f64" sym e0 e1 (vLen sym)
 
     --
     -- For double precision case, there's no approximate division in NEON
@@ -847,7 +846,7 @@ instance CodeGenNEON IR.Exp where
  
         --             , prtSymConstDef sym
         --             , docStr "="
-        --             , docStr "_mm_set_ps1( "
+        --             , docStr "vdupq_n_f321( "
         --             , prtSym idSym
         --             , docStr "["
         --             , prtSymOfExp idxExp 
@@ -871,7 +870,7 @@ instance CodeGenNEON IR.Exp where
             [ emitArrayV sym idSym idxExp (n-1)
             , prtSymConstDefN sym n
             , docStr "="
-            , docStr "_mm_set_ps1( "
+            , docStr "vdupq_n_f32( "
             , prtArraySym idSym 
             , docStr "["
             , prtSymOfExpN idxExp n
@@ -912,7 +911,7 @@ instance CodeGenNEON IR.Exp where
             [ emitArrayV sym idSym idxExp (n-1)
             , prtSymConstDefN sym n
             , docStr "="
-            , docStr "_mm_set1_epi32( "
+            , docStr "vdupq_n_s32( "
             , docStr $ (Sym.getName idSym)
             , docStr "["
             , prtSymOfExpN idxExp n
@@ -1024,7 +1023,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [concatD $ map prt exps,
                     prtSymConstDefN sym 1,
                     docStr "=",
-                    docStr "_mm_set_ps",
+                    docStr "vdupq_n_f32",
                     docStr "(",
                     prtFuncArgSymsWithScalalizationN exps,
                     docStr ")",
@@ -1052,7 +1051,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [concatD $ map prt exps,
                     prtSymConstDef sym,
                     docStr "=",
-                    docStr "_mm_set_ps",
+                    docStr "vdupq_n_f32",
                     docStr "(",
                     prtFuncArgSymsWithScalalization exps,
                     docStr ")",
@@ -1241,9 +1240,6 @@ instance CodeGenNEON IR.Exp where
 
     --
     -- ceil(x).
-    -- Mapped to muda_ceil_ps().
-    -- 
-    -- NOTE: NEON4 has _mm_ceil_ps() intrinsic function?.
     --
     IR.ECeil sym exps
         -> concatD [ prt $ exps !! 0      -- first elem only
@@ -1257,15 +1253,12 @@ instance CodeGenNEON IR.Exp where
 
     --
     -- floor(x).
-    -- Mapped to muda_floor_ps().
-    -- 
-    -- NOTE: NEON4 has _mm_floor_ps() intrinsic function?.
     --
     IR.EFloor sym exps
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "muda_floor_ps("
+                   , docStr "vrndmq_f32("
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr ")"
                    , docStr ";"
@@ -1275,8 +1268,6 @@ instance CodeGenNEON IR.Exp where
     --
     -- trunc(x).
     -- 
-    -- NOTE: NEON4 has _mm_trunc_ps() intrinsic function.
-    --
     IR.ETrunc sym exps
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
@@ -1289,19 +1280,14 @@ instance CodeGenNEON IR.Exp where
 
     --
     -- round(x).
-    -- Mapped to itof(ftoi(x)) = _mm_cvtepi32_ps(_mm_cvtps_epi32(x)).
-    -- Assume rounding mode is set to round-to-nearest.
-    -- 
-    -- NOTE: Assume default rounding mode, i.e. round-to-nearest.    
-    -- NOTE: NEON4 has _mm_round_ps() intrinsic function.
     --
     IR.ERound sym exps
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "_mm_cvtepi32_ps(_mm_cvtps_epi32("
+                   , docStr "vrndq_f32("
                    , prtFuncArgSymsN $ [exps !! 0]
-                   , docStr "))"
+                   , docStr ")"
                    , docStr ";"
                    ]
 
@@ -1332,7 +1318,7 @@ instance CodeGenNEON IR.Exp where
           [ prt $ exps !! 0      -- first elem only
           , prtSymConstDefN sym 1
           , docStr "="
-          , docStr "_mm_movemask_ps("
+          , docStr "muda_gather_ps("
           , prtFuncArgSymsN [(exps !! 0)]
           , docStr ")"
           , docStr ";"
@@ -1412,8 +1398,6 @@ instance CodeGenNEON IR.Exp where
 
     --
     -- abs(a).
-    -- Mapped to muda_abs_ps(x)
-    -- TODO: insert gather op for DVec support
     --
     IR.EAbs sym exps -> concatD
 
@@ -1429,7 +1413,7 @@ instance CodeGenNEON IR.Exp where
             [ emitAbsV sym exp (n-1)
             , prtSymConstDefN sym n
             , docStr "="
-            , docStr "muda_abs_ps("
+            , docStr "vabsq_f32("
             , prtSymOfExpN exp n
             , docStr ")"
             , docStr ";"
@@ -1927,24 +1911,18 @@ headerString = unlines
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_sel_ps( const float32x4_t a, const float32x4_t b, const float32x4_t mask )"
   , "{"
-  , "#ifdef __NEON41__"
-  , "    return _mm_blend_ps(a, b, mask);"
-  , "#else"
-  , "    const float32x4_t tmp0 = _mm_and_ps( b, mask );"
-  , "    const float32x4_t tmp1 = _mm_andnot_ps( mask, a);"
-  , "    return _mm_or_ps( tmp1, tmp0 );"
-  , "#endif"
+  , "    const uint32x4_t um = vcvtq_u32_f32(mask);"
+  , "    const uint32x4_t ua = vcvtq_u32_f32(a);"
+  , "    const uint32x4_t ub = vcvtq_u32_f32(b);"
+  , "    const uint32x4_t ret = vorrq_u32(vandq_u32((um), (ua)), vandq_u32(vmvnq_u32(um), (ub)));"
+  , "    return vcvtq_f32_u32(ret);"
   , "}"
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float64x2_t muda_sel_pd( const float64x2_t a, const float64x2_t b, const float64x2_t mask )"
   , "{"
-  , "#ifdef __NEON41__"
-  , "    return _mm_blend_pd(a, b, mask);"
-  , "#else"
   , "    const float64x2_t tmp0 = _mm_and_pd( b, mask );"
-  , "    const float64x2_t tmp1 = _mm_andnot_pd( mask, a);"
+  , "    const float64x2_t tmp1 = vbicq_s64( a, mask );"
   , "    return _mm_or_pd( tmp1, tmp0 );"
-  , "#endif"
   , "}"
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE int muda_gather_pd( const float64x2_t a, const float64x2_t b )"
@@ -1968,7 +1946,7 @@ headerString = unlines
   , "    const float32x4_t sign = (float32x4_t)_mm_slli_epi32( _mm_srli_epi32( (float32x4_ti)x, 31), 31);"
   , "    const float32x4_t tt = _mm_or_ps( t, sign );"
   , "    const float32x4_t vv = _mm_and_ps( x, largeMaskE );"
-  , "    const float32x4_t ttt = _mm_andnot_ps( largeMaskE, tt );"
+  , "    const float32x4_t ttt = vbicq_s32( tt, largeMaskE ); // swap "
   , "    return _mm_or_ps( ttt, vv );"
   , "}"
   , ""
@@ -1985,7 +1963,7 @@ headerString = unlines
   , "    const float32x4_t sign = (float32x4_t)_mm_slli_epi32( _mm_srli_epi32( (float32x4_ti)x, 31), 31);"
   , "    const float32x4_t tt = _mm_or_ps( t, sign );"
   , "    const float32x4_t vv = _mm_and_ps( x, largeMaskE );"
-  , "    const float32x4_t ttt = _mm_andnot_ps( largeMaskE, tt );"
+  , "    const float32x4_t ttt = vbicq_s32( tt, largeMaskE ); // swap"
   , "    return _mm_or_ps( ttt, vv );"
   , "}"
   , ""
@@ -1993,7 +1971,7 @@ headerString = unlines
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_ceil_ps( const float32x4_t x )"
   , "{"
   , "    const float32x4_t twoTo23 = (float32x4_t)_mm_set1_epi32(0x4b000000); // 2**23"
-  , "    const float32x4_t one = _mm_set1_ps(1.0f);"
+  , "    const float32x4_t one = vdupq_n_f32(1.0f);"
   , "    const float32x4_t b = (float32x4_t)_mm_srli_epi32(_mm_slli_epi32( (float32x4_ti)x, 1), 1); // fabs(x) "
   , "    const float32x4_t d = vsubq_f32(vaddq_f32(vaddq_f32(vsubq_f32( x, twoTo23), twoTo23), twoTo23), twoTo23); // the meat of ceil" 
   , "    const float32x4_t largeMaskE = _mm_cmpgt_ps( b, twoTo23); // -1 if x>= 2**23" 
@@ -2003,35 +1981,13 @@ headerString = unlines
   , "    const float32x4_t sign = (float32x4_t)_mm_slli_epi32( _mm_srli_epi32( (float32x4_ti)x, 31), 31);"
   , "    const float32x4_t tt = _mm_or_ps( t, sign );"
   , "    const float32x4_t vv = _mm_and_ps( x, largeMaskE );"
-  , "    const float32x4_t ttt = _mm_andnot_ps( largeMaskE, tt );"
+  , "    const float32x4_t ttt = vbicq_s32( tt, largeMaskE );"
   , "    return _mm_or_ps( ttt, vv );"
-  , "}"
-  , ""
-  , "// TODO: Using and is faster than 2 shift ops?"
-  , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_abs_ps( const float32x4_t x )"
-  , "{"
-  , "    const float32x4_t b = (float32x4_t)_mm_srli_epi32(_mm_slli_epi32( (float32x4_ti)x, 1), 1); // fabs(x) "
-  , "    return b;"
-  , "}"
-  , ""
-  , "// C99 compatible round() function."
-  , "// i.e., Round to nearest integer value. If the input value lies"
-  , "// exactly halfway between two integer value, round away from zero."
-  , "//"
-  , "// TODO: Handle NaN case?"
-  , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_round_ps( const float32x4_t x )"
-  , "{"
-  , "    const float32x4_t b = (float32x4_t)_mm_srli_epi32(_mm_slli_epi32( (float32x4_ti)x, 1), 1); // fabs(x) "
-  , "    const float32x4_t t = muda_ceil_ps( b );" 
-  , "    const float32x4_t mask = _mm_cmpgt_ps(vsubq_f32( t, x ), _mm_set1_ps( 0.5f ));"
-  , "    const float32x4_t tt = muda_sel_ps( t, vsubq_f32( t, _mm_set1_ps(1.0f) ), mask); // if (t - x > 0.5) t -= 1.0"
-  , "    const float32x4_t sign = (float32x4_t)_mm_slli_epi32( _mm_srli_epi32( (float32x4_ti)x, 31), 31);"
-  , "    return _mm_xor_ps( tt, sign ); // if (x < 0.0) -t else t"
   , "}"
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float64x2_t muda_divapprox_pd( const float64x2_t a, const float64x2_t x )"
   , "{"
-  , "    float64x2_t b = _mm_cvtps_pd(_mm_rcp_ps(_mm_cvtpd_ps(x))); "
+  , "    float64x2_t b = vcvt_f64_f32(_mm_rcp_ps(_mm_cvtpd_ps(x))); "
   , "    b = _mm_sub_pd(_mm_add_pd(b, b), vmulq_f64(vmulq_f64(x, b), b)); "
   , "    b = _mm_sub_pd(_mm_add_pd(b, b), vmulq_f64(vmulq_f64(x, b), b)); "
   , "    return vmulq_f64(a, b); // = a * (1.0 / x)"
@@ -2216,7 +2172,7 @@ prtReadFormalSymN sym n = case (isPointer $ Sym.getQuals sym, isScalar $ Sym.get
 
 prtRefFormalSym :: Sym.Sym -> Doc
 prtRefFormalSym sym = case Sym.getType sym of
-  T.Vec      -> docStr $ "_mm_loadu_ps(" ++ (Sym.getName sym) ++ ")"
+  T.Vec      -> docStr $ "vld1q_f32(" ++ (Sym.getName sym) ++ ")"
   T.IVec     -> docStr $ "_mm_loadu_si128((float32x4_ti const *)(" ++ (Sym.getName sym) ++ "))"
   T.DVec     -> docStr $ "((float64x2_t *)(" ++ (Sym.getName sym) ++ "))"
   T.F        -> docStr $ (Sym.getName sym)
@@ -2225,9 +2181,9 @@ prtRefFormalSym sym = case Sym.getType sym of
 
 prtRefFormalSymN :: Sym.Sym -> Int -> Doc
 prtRefFormalSymN sym n = case Sym.getType sym of
-  T.Vec      -> docStr $ "_mm_loadu_ps("    ++ (Sym.getName sym) ++ " + " ++ show (4 * (n-1)) ++ ")"
+  T.Vec      -> docStr $ "vld1q_f32("    ++ (Sym.getName sym) ++ " + " ++ show (4 * (n-1)) ++ ")"
   T.IVec     -> docStr $ "_mm_loadu_si128((float32x4_ti const *)(" ++ (Sym.getName sym) ++ " + " ++ show (4 * (n-1)) ++ "))"
-  T.DVec     -> docStr $ "_mm_loadu_pd("    ++ (Sym.getName sym) ++ " + " ++ show (2 * (n-1)) ++ ")"
+  T.DVec     -> docStr $ "vld1q_f64("    ++ (Sym.getName sym) ++ " + " ++ show (2 * (n-1)) ++ ")"
   T.F        -> docStr $ (Sym.getName sym)
   T.I        -> docStr $ (Sym.getName sym)
   T.Var s    -> docStr $ "(*" ++ (Sym.getName sym) ++ ")"
@@ -2376,7 +2332,7 @@ instance CodeGenNEON IR.Stm where
     -- a.xy = v is mapped to.
     --
     -- float tmp[4];
-    -- _mm_storeu_ps(tmp, v);
+    -- vst1q_f32(tmp, v);
     --
     -- ((float *)&a)[0] = tmp[0];
     -- ((float *)&a)[1] = tmp[1];
@@ -2658,19 +2614,6 @@ prtHeader p = case p of
       , "// The following code is generated by MUDA compiler"
       , "//"
       , "#include <arm_neon.h>"
-      -- , ""
-      -- , "typedef union {"
-      -- , "   float32x4_t v;" 
-      -- , "   float  f[4];" 
-      -- , "   int    i[4];" 
-      -- , "} vec;"
-      -- , ""
-      -- , "typedef union {"
-      -- , "   float32x4_t v0;" 
-      -- , "   float32x4_t v1;" 
-      -- , "   float  f[8];" 
-      -- , "   int    i[8];" 
-      -- , "} dvec;"
       , "\n"
       ]
 
