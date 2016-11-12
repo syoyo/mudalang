@@ -200,7 +200,7 @@ prtShiftOp opStr sym e0 (IR.EItoIV _ intExp) = concatD
   , prt intExp
   , prtSymConstDef sym
   , docStr " = "
-  , docStr ("(float32x4_t)" ++ opStr ++ "((float32x4_ti)")
+  , docStr ("(float32x4_t)" ++ opStr ++ "((int32x4_t)")
   , prtSymOfExp e0
   , docStr ", "
   , prtSymOfExp intExp
@@ -215,7 +215,7 @@ prtShiftOpN opStr sym e0 (IR.EItoIV _ intExp) n = concatD
   , prt intExp
   , prtSymConstDefN sym 1
   , docStr " = "
-  , docStr (castStr ++ opStr ++ "((float32x4_ti)")
+  , docStr (castStr ++ opStr ++ "((int32x4_t)")
   , prtSymOfExpN e0 1
   , docStr ", "
   , prtSymOfExpN intExp 1
@@ -229,45 +229,6 @@ prtShiftOpN opStr sym e0 (IR.EItoIV _ intExp) n = concatD
       T.Vec -> "(float32x4_t)"
       _     -> ""
 
---
--- Division by reciprocal + one round of Newton-Raphson
---
--- 1 / v :=  rcp = _mm_rcp_ps(v)
---           return vsubq_f32(vaddq_f32(rcp, rcp),
---                             vmulq_f32(vmulq_f32(rcp, rcp), v));
---
--- a / v :=  a * (1 / v)
---            
-prtApproxDivOp :: Sym.Sym -> IR.Exp -> IR.Exp -> Doc
-prtApproxDivOp sym e0 e1 = concatD
-  [ prt e0
-  , prt e1
-  , docStr $ "const float32x4_t " ++ rcpRegName
-  , docStr " = "
-  , docStr "_mm_rcp_ps("
-  , prtSymOfExpN e1 1
-  , docStr ")" 
-  , docStr ";"
-  , docStr $ "const float32x4_t " ++ tmpRegName
-  , docStr " = "
-  , docStr $ "vsubq_f32(vaddq_f32(" ++ rcpRegName ++ ", " ++ rcpRegName ++ "), vmulq_f32(vmulq_f32(" ++ rcpRegName ++ ", " ++ rcpRegName ++ "), "
-  , prtSymOfExpN e1 1
-  , docStr "))"
-  , docStr ";"
-  , prtSymConstDefN sym 1
-  , docStr " = "
-  , docStr "vmulq_f32("
-  , prtSymOfExpN e0 1
-  , docStr ","
-  , docStr tmpRegName
-  , docStr ")"
-  , docStr ";"
-  ]
-
-  where
-  
-    rcpRegName = show (Sym.getType $ IR.getSymFromExp e1) ++ (Sym.getName $ IR.getSymFromExp e1) ++ "_rcp"
-    tmpRegName = rcpRegName ++ "_tmp"
 
 --
 -- Not is mapped to vbicq_s32(x, 0xffffffff)
@@ -512,7 +473,7 @@ prtVtoDV sym exp = concatD
 -- Emits string such like,
 --
 --  int tmpVar[4];
---  _mm_storeu_si128((float32x4_ti *)tmpVar, v);
+--  _mm_storeu_si128((int32x4_t *)tmpVar, v);
 --  int ivar = tmpVar[0];
 --
 -- Use _mm_storeu_si128 for safety for now,
@@ -530,7 +491,7 @@ prtIVtoI sym exp =
     docStr $ tmpSymStr ++ "[4]",
     docStr ";",
     docStr "_mm_storeu_si128",
-    docStr "((float32x4_ti *)",
+    docStr "((int32x4_t *)",
     docStr tmpSymStr,
     docStr ",",
     prtSymOfExpN exp 1,
@@ -707,9 +668,9 @@ instance CodeGenNEON IR.Exp where
       | otherwise              -> error "TODO: and"
 
     IR.EOr    sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vorq_f32"     sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "vorq_s32"  sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "vorq_f64"     sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vorrq_f32"     sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "vorrq_s32"  sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "vorrq_f64"     sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: or"
     IR.EXor   sym e0 e1       -> prtBinOpN   "veorq_s32"    sym e0 e1 (vLen sym)
     IR.ENot   sym e0 e1       -> prtBinOp    "_mm_todo_ps"   sym e0 e1 -- TODO
@@ -788,7 +749,7 @@ instance CodeGenNEON IR.Exp where
 
       | otherwise              -> error "TODO: Neg"
 
-    IR.ESlElemWise sym e0 e1  -> prtShiftOpN "_mm_slli_epi32"  sym e0 e1 (vLen sym)
+    IR.ESlElemWise sym e0 e1  -> prtShiftOpN "vshlq_n_s32"  sym e0 e1 (vLen sym)
     IR.ESrElemWise sym e0 e1  -> prtShiftOpN "_mm_srli_epi32"  sym e0 e1 (vLen sym)
     IR.ESlQWord sym e0 e1     -> prtShiftOpN "_mm_slli_si128"  sym e0 e1 (vLen sym)
     IR.ESrQWord sym e0 e1     -> prtShiftOpN "_mm_slri_si128"  sym e0 e1 (vLen sym)
@@ -816,12 +777,8 @@ instance CodeGenNEON IR.Exp where
       | (tyOfExp e0) == T.IVec -> prtBinOpN  "TODO_idiv"  sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.DVec -> prtBinOpN  "vdiv_f64" sym e0 e1 (vLen sym)
 
-    --
-    -- For double precision case, there's no approximate division in NEON
-    -- instruction. Anyway, latency of precise division in double is tolerated
-    -- compared to float case.
     IR.EDivApprox   sym e0 e1 
-      | (tyOfExp e0) == T.Vec  -> prtApproxDivOp sym e0 e1
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN  "muda_divapprox_ps" sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> prtBinOpN  "TODO_idiv"  sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.DVec -> prtBinOpN  "muda_divapprox_pd" sym e0 e1 (vLen sym)
 
@@ -1186,7 +1143,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "_mm_cvtepi32_ps((float32x4_ti)"
+                   , docStr "_mm_cvtepi32_ps((int32x4_t)"
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr ")"
                    , docStr ";"
@@ -1200,7 +1157,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "(float32x4_ti)_mm_cvttps_epi32("
+                   , docStr "(int32x4_t)_mm_cvttps_epi32("
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr ")"
                    , docStr ";"
@@ -1620,7 +1577,7 @@ instance CodeGenNEON IR.Exp where
 
     --
     -- as_ivec(a).
-    -- Mapped to cast to float32x4_ti
+    -- Mapped to cast to int32x4_t
     --
     IR.EAsIVec sym exps -> concatD
 
@@ -1636,7 +1593,7 @@ instance CodeGenNEON IR.Exp where
             [ emitAsIVecV sym exp (n-1)
             , prtSymConstDefN sym n
             , docStr "="
-            , docStr "(float32x4_ti)("
+            , docStr "(int32x4_t)("
             , prtSymOfExpN exp n
             , docStr ")"
             , docStr ";"
@@ -1889,12 +1846,12 @@ headerString = unlines
   , "#define MUDA_STATIC        static"
   , "#endif // __GNUC_"
   , ""
-  , "#include \"muda.h\""
+  , "//#include \"muda.h\""
   , ""
   , ""
   , "#ifdef __GNUC__"
   , "MUDA_STATIC MUDA_INLINE void *muda_aligned_addr16(void *addr) {"
-  , "    return (void *)((((unsigned int)addr) + 15UL) & ~(15UL));"
+  , "    return (void *)((((unsigned long long)addr) + 15UL) & ~(15UL));"
   , "}"
   , "#endif"
   , ""
@@ -1920,80 +1877,52 @@ headerString = unlines
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float64x2_t muda_sel_pd( const float64x2_t a, const float64x2_t b, const float64x2_t mask )"
   , "{"
-  , "    const float64x2_t tmp0 = _mm_and_pd( b, mask );"
-  , "    const float64x2_t tmp1 = vbicq_s64( a, mask );"
-  , "    return _mm_or_pd( tmp1, tmp0 );"
+  , "    assert(0); "
+  , "    return a; // TODO;"
   , "}"
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE int muda_gather_pd( const float64x2_t a, const float64x2_t b )"
   , "{"
-  , "    const int tmp0 = _mm_movemask_pd( a );"
-  , "    const int tmp1 = _mm_movemask_pd( b );"
-  , "    return (tmp0 << 2) | tmp1;"
+  , "    assert(0); "
+  , "    return 0; // TODO;"
   , "}"
   , ""
   , "// from AltiVec/NEON migration guide"
   , "// this can be replaced with cvttps2pi?"
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_trunc_ps( const float32x4_t x )"
   , "{"
-  , "    const float32x4_t twoTo23 = (float32x4_t)_mm_set1_epi32(0x4b000000); // 2**23"
-  , "    const float32x4_t b = (float32x4_t)_mm_srli_epi32(_mm_slli_epi32( (float32x4_ti)x, 1), 1); // fabs(x) "
-  , "    const float32x4_t d = vsubq_f32(vaddq_f32( b, twoTo23), twoTo23);" 
-  , "    const float32x4_t largeMaskE = _mm_cmpgt_ps( b, twoTo23); // -1 if x>= 2**23" 
-  , "    const float32x4_t g = _mm_cmplt_ps( b, d );"
-  , "    const float32x4_t h = _mm_cvtepi32_ps( (float32x4_ti)g ); // -1.0 or 0.0"
-  , "    const float32x4_t t = vaddq_f32( d, h );"
-  , "    const float32x4_t sign = (float32x4_t)_mm_slli_epi32( _mm_srli_epi32( (float32x4_ti)x, 31), 31);"
-  , "    const float32x4_t tt = _mm_or_ps( t, sign );"
-  , "    const float32x4_t vv = _mm_and_ps( x, largeMaskE );"
-  , "    const float32x4_t ttt = vbicq_s32( tt, largeMaskE ); // swap "
-  , "    return _mm_or_ps( ttt, vv );"
+  , "    assert(0); "
+  , "    return x; // TODO;"
   , "}"
   , ""
   , "// If we fix rounding mode, the code can be simplified more."
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_floor_ps( const float32x4_t x )"
   , "{"
-  , "    const float32x4_t twoTo23 = (float32x4_t)_mm_set1_epi32(0x4b000000); // 2**23"
-  , "    const float32x4_t b = (float32x4_t)_mm_srli_epi32(_mm_slli_epi32( (float32x4_ti)x, 1), 1); // fabs(x) "
-  , "    const float32x4_t d = vsubq_f32(vaddq_f32(vaddq_f32(vsubq_f32( x, twoTo23), twoTo23), twoTo23), twoTo23); // the meat of floor"
-  , "    const float32x4_t largeMaskE = _mm_cmpgt_ps( b, twoTo23); // -1 if x>= 2**23" 
-  , "    const float32x4_t g = _mm_cmplt_ps( b, d );"
-  , "    const float32x4_t h = _mm_cvtepi32_ps( (float32x4_ti)g );"
-  , "    const float32x4_t t = vaddq_f32( d, h );"
-  , "    const float32x4_t sign = (float32x4_t)_mm_slli_epi32( _mm_srli_epi32( (float32x4_ti)x, 31), 31);"
-  , "    const float32x4_t tt = _mm_or_ps( t, sign );"
-  , "    const float32x4_t vv = _mm_and_ps( x, largeMaskE );"
-  , "    const float32x4_t ttt = vbicq_s32( tt, largeMaskE ); // swap"
-  , "    return _mm_or_ps( ttt, vv );"
+  , "    assert(0); "
+  , "    return x; // TODO;"
   , "}"
   , ""
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_ceil_ps( const float32x4_t x )"
   , "{"
-  , "    const float32x4_t twoTo23 = (float32x4_t)_mm_set1_epi32(0x4b000000); // 2**23"
-  , "    const float32x4_t one = vdupq_n_f32(1.0f);"
-  , "    const float32x4_t b = (float32x4_t)_mm_srli_epi32(_mm_slli_epi32( (float32x4_ti)x, 1), 1); // fabs(x) "
-  , "    const float32x4_t d = vsubq_f32(vaddq_f32(vaddq_f32(vsubq_f32( x, twoTo23), twoTo23), twoTo23), twoTo23); // the meat of ceil" 
-  , "    const float32x4_t largeMaskE = _mm_cmpgt_ps( b, twoTo23); // -1 if x>= 2**23" 
-  , "    const float32x4_t g = _mm_cmpgt_ps( b, d );"
-  , "    const float32x4_t h = _mm_cvtepi32_ps( (float32x4_ti)g );"
-  , "    const float32x4_t t = vsubq_f32( d, h );"
-  , "    const float32x4_t sign = (float32x4_t)_mm_slli_epi32( _mm_srli_epi32( (float32x4_ti)x, 31), 31);"
-  , "    const float32x4_t tt = _mm_or_ps( t, sign );"
-  , "    const float32x4_t vv = _mm_and_ps( x, largeMaskE );"
-  , "    const float32x4_t ttt = vbicq_s32( tt, largeMaskE );"
-  , "    return _mm_or_ps( ttt, vv );"
+  , "    assert(0); "
+  , "    return x; // TODO;"
+  , "}"
+  , ""
+  , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_divapprox_ps( const float32x4_t a, const float32x4_t x )"
+  , "{"
+  , "    const float32x4_t recip = vrecpeq_f32(x); "
+  , "    const float32x4_t nrecip = vmulq_f32(recip, vrecpsq_f32(recip, x)); "
+  , "    return nrecip;"
   , "}"
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float64x2_t muda_divapprox_pd( const float64x2_t a, const float64x2_t x )"
   , "{"
-  , "    float64x2_t b = vcvt_f64_f32(_mm_rcp_ps(_mm_cvtpd_ps(x))); "
-  , "    b = _mm_sub_pd(_mm_add_pd(b, b), vmulq_f64(vmulq_f64(x, b), b)); "
-  , "    b = _mm_sub_pd(_mm_add_pd(b, b), vmulq_f64(vmulq_f64(x, b), b)); "
-  , "    return vmulq_f64(a, b); // = a * (1.0 / x)"
+  , "    assert(0); "
+  , "    return a; // TODO;"
   , "}"
   , ""
-  , "#include \"mudamath_neon.h\""
+  , "//#include \"mudamath_neon.h\""
   , ""
   , "#endif // MUDAINTRIN_NEON_H"
   ]
@@ -2102,7 +2031,7 @@ prtAccessFormalSym sym = case (isPointer $ Sym.getQuals sym, isScalar $ Sym.getT
     nameWithTypeCast :: Sym.Sym -> String
     nameWithTypeCast sym = case Sym.getType sym of
       T.Vec      -> "((float32x4_t *)(" ++ (Sym.getName sym) ++ "))"
-      T.IVec     -> "((float32x4_ti *)(" ++ (Sym.getName sym) ++ "))"
+      T.IVec     -> "((int32x4_t *)(" ++ (Sym.getName sym) ++ "))"
       T.DVec     -> "((float64x2_t *)(" ++ (Sym.getName sym) ++ "))"
       T.F        -> (Sym.getName sym)
       T.D        -> (Sym.getName sym)
@@ -2122,7 +2051,7 @@ prtAccessFormalSymN sym n = case (isPointer $ Sym.getQuals sym, isScalar $ Sym.g
     nameWithTypeCastN :: Sym.Sym -> Int -> String
     nameWithTypeCastN sym n = case Sym.getType sym of
       T.Vec      -> "((float32x4_t *)("  ++ (Sym.getName sym) ++ "+" ++ show (4 * (n-1)) ++ "))"
-      T.IVec     -> "((float32x4_ti *)(" ++ (Sym.getName sym) ++ "+" ++ show (4 * (n-1)) ++ "))"
+      T.IVec     -> "((int32x4_t *)(" ++ (Sym.getName sym) ++ "+" ++ show (4 * (n-1)) ++ "))"
       T.DVec     -> "((float64x2_t *)(" ++ (Sym.getName sym) ++ "+" ++ show (2 * (n-1)) ++ "))"
       T.F        -> (Sym.getName sym)
       T.D        -> (Sym.getName sym)
@@ -2142,7 +2071,7 @@ prtReadFormalSym sym = case (isPointer $ Sym.getQuals sym, isScalar $ Sym.getTyp
     nameWithTypeCast :: Sym.Sym -> String
     nameWithTypeCast sym = case Sym.getType sym of
       T.Vec      -> "((float32x4_t *)(" ++ (Sym.getName sym) ++ "))"
-      T.IVec     -> "((float32x4_ti *)(" ++ (Sym.getName sym) ++ "))"
+      T.IVec     -> "((int32x4_t *)(" ++ (Sym.getName sym) ++ "))"
       T.DVec     -> "((float64x2_t *)(" ++ (Sym.getName sym) ++ "))"
       T.F        -> (Sym.getName sym)
       T.D        -> (Sym.getName sym)
@@ -2162,7 +2091,7 @@ prtReadFormalSymN sym n = case (isPointer $ Sym.getQuals sym, isScalar $ Sym.get
     nameWithTypeCast :: Sym.Sym -> String
     nameWithTypeCast sym = case Sym.getType sym of
       T.Vec      -> "((float32x4_t *)(" ++ (Sym.getName sym) ++ "))"
-      T.IVec     -> "((float32x4_ti *)(" ++ (Sym.getName sym) ++ "))"
+      T.IVec     -> "((int32x4_t *)(" ++ (Sym.getName sym) ++ "))"
       T.DVec     -> "((float64x2_t *)(" ++ (Sym.getName sym) ++ "))"
       T.F        -> (Sym.getName sym)
       T.D        -> (Sym.getName sym)
@@ -2173,7 +2102,7 @@ prtReadFormalSymN sym n = case (isPointer $ Sym.getQuals sym, isScalar $ Sym.get
 prtRefFormalSym :: Sym.Sym -> Doc
 prtRefFormalSym sym = case Sym.getType sym of
   T.Vec      -> docStr $ "vld1q_f32(" ++ (Sym.getName sym) ++ ")"
-  T.IVec     -> docStr $ "_mm_loadu_si128((float32x4_ti const *)(" ++ (Sym.getName sym) ++ "))"
+  T.IVec     -> docStr $ "vld1q_s32(int32_t const *)(" ++ (Sym.getName sym) ++ "))"
   T.DVec     -> docStr $ "((float64x2_t *)(" ++ (Sym.getName sym) ++ "))"
   T.F        -> docStr $ (Sym.getName sym)
   T.I        -> docStr $ (Sym.getName sym)
@@ -2182,7 +2111,7 @@ prtRefFormalSym sym = case Sym.getType sym of
 prtRefFormalSymN :: Sym.Sym -> Int -> Doc
 prtRefFormalSymN sym n = case Sym.getType sym of
   T.Vec      -> docStr $ "vld1q_f32("    ++ (Sym.getName sym) ++ " + " ++ show (4 * (n-1)) ++ ")"
-  T.IVec     -> docStr $ "_mm_loadu_si128((float32x4_ti const *)(" ++ (Sym.getName sym) ++ " + " ++ show (4 * (n-1)) ++ "))"
+  T.IVec     -> docStr $ "vld1q_s32((int32_t const *)(" ++ (Sym.getName sym) ++ " + " ++ show (4 * (n-1)) ++ "))"
   T.DVec     -> docStr $ "vld1q_f64("    ++ (Sym.getName sym) ++ " + " ++ show (2 * (n-1)) ++ ")"
   T.F        -> docStr $ (Sym.getName sym)
   T.I        -> docStr $ (Sym.getName sym)
@@ -2191,7 +2120,7 @@ prtRefFormalSymN sym n = case Sym.getType sym of
 prtArrayFormalSym :: Sym.Sym -> Doc
 prtArrayFormalSym sym = case Sym.getType sym of
   T.Vec      -> docStr $ "((float32x4_t *)(" ++ (Sym.getName sym) ++ "))"
-  T.IVec     -> docStr $ "((float32x4_ti *)(" ++ (Sym.getName sym) ++ "))"
+  T.IVec     -> docStr $ "((int32x4_t *)(" ++ (Sym.getName sym) ++ "))"
   T.DVec     -> docStr $ "((float64x2_t *)(" ++ (Sym.getName sym) ++ "))"
   T.F        -> docStr $ (Sym.getName sym)
   T.I        -> docStr $ (Sym.getName sym)
