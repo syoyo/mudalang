@@ -1120,7 +1120,7 @@ instance CodeGenNEON IR.Exp where
     IR.EBtoV sym (IR.EInt sym' val) 
         -> concatD [prtSymConstDefN sym 1,
                     docStr "=",
-                    docStr "(float32x4_t)_mm_set1_epi32(",
+                    docStr "(float32x4_t)vdup_n_s32(",
                     docStr $ show val ++ "U",
                     docStr ")",
                     docStr ";"
@@ -1143,7 +1143,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "_mm_cvtepi32_ps((int32x4_t)"
+                   , docStr "vcvtq_f32_s32("
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr ")"
                    , docStr ";"
@@ -1157,7 +1157,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "(int32x4_t)_mm_cvttps_epi32("
+                   , docStr "vcvtq_s32_f32("
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr ")"
                    , docStr ";"
@@ -1179,7 +1179,6 @@ instance CodeGenNEON IR.Exp where
 
     --
     -- frac(x).
-    -- Mapped to muda_frac_ps(x).
     -- 
     --
     IR.EFrac sym exps
@@ -1189,7 +1188,7 @@ instance CodeGenNEON IR.Exp where
                    , docStr "vsubq_f32("
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr ", "
-                   , docStr "muda_ceil_ps("
+                   , docStr "vrndpq_f32("
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr ")"
                    , docStr ";"
@@ -1202,7 +1201,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "muda_ceil_ps("
+                   , docStr "vrndpq_f32("
                    , prtFuncArgSymsN $ [exps !! 0] 
                    , docStr ")"
                    , docStr ";"
@@ -1229,7 +1228,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "_mm_cvtepi32_ps(_mm_cvttps_epi32("
+                   , docStr "vrndq_f32("
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr "))"
                    , docStr ";"
@@ -1237,12 +1236,13 @@ instance CodeGenNEON IR.Exp where
 
     --
     -- round(x).
+    -- Round to nearest even
     --
     IR.ERound sym exps
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "vrndq_f32("
+                   , docStr "vrndaq_f32("
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr ")"
                    , docStr ";"
@@ -1868,6 +1868,7 @@ headerString = unlines
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_sel_ps( const float32x4_t a, const float32x4_t b, const float32x4_t mask )"
   , "{"
+  , "    // TODO(syoyo): Use VSEL instruction"
   , "    const uint32x4_t um = vcvtq_u32_f32(mask);"
   , "    const uint32x4_t ua = vcvtq_u32_f32(a);"
   , "    const uint32x4_t ub = vcvtq_u32_f32(b);"
