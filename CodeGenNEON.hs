@@ -1187,14 +1187,13 @@ instance CodeGenNEON IR.Exp where
 -}
 
     --
-    -- shuffle
+    -- extract
     --
     IR.EExtract     sym exps 
         -> concatD [prt $ exps !! 0,      -- expand first elem only
+                    docStr "_MUDA_SHUFFLE_PS(",
                     prtSymConstDefN sym 1,
-                    docStr "=",
-                    docStr "muda_shuffle_ps",
-                    docStr "(",
+                    docStr ",",
                     prtFuncArgSymsN $ [exps !! 0],
                     docStr ",",
                     prtFuncArgSymsN $ [exps !! 0],
@@ -1736,27 +1735,61 @@ instance CodeGenNEON IR.Exp where
         , emitShuffleInsnD2 2 sym (swizzleIndex !! 2) (swizzleIndex !! 3) exp
         ]
 
-      T.Vec -> concatD 
-        [  prt exp
-        , prtSymConstDefN sym 1
-        , docStr "="
-        , docStr "muda_shuffle_ps("
-        , prtSymOfExpN exp 1
-        , docStr ","
-        , prtSymOfExpN exp 1
-        , docStr ","
-        , docStr "_MUDA_SHUFFLE("
-        , prtSwizzleIndex swizzleIndex
-        , docStr "))"
-        , docStr ";"
-        ]
+      T.Vec -> case ((swizzleIndex !! 0), (swizzleIndex !! 1), (swizzleIndex !! 2), (swizzleIndex !! 3)) of
+        (0, 0, 0, 0) -> concatD -- splat x
+          [ prt exp
+          , prtSymConstDefN sym 1
+          , docStr "="
+          , docStr "vdupq_lane_f32(vget_low_f32("
+          , prtSymOfExpN exp 1
+          , docStr "), 0);"
+          ]
+        (1, 1, 1, 1) -> concatD -- splat y
+          [ prt exp
+          , prtSymConstDefN sym 1
+          , docStr "="
+          , docStr "vdupq_lane_f32(vget_low_f32("
+          , prtSymOfExpN exp 1
+          , docStr "), 1);"
+          ]
+        (2, 2, 2, 2) -> concatD -- splat z
+          [ prt exp
+          , prtSymConstDefN sym 1
+          , docStr "="
+          , docStr "vdupq_laneq_f32(vget_high_f32("
+          , prtSymOfExpN exp 1
+          , docStr "), 0);"
+          ]
+        (3, 3, 3, 3) -> concatD -- splat w
+          [ prt exp
+          , prtSymConstDefN sym 1
+          , docStr "="
+          , docStr "vdupq_laneq_f32(vget_high_f32)"
+          , prtSymOfExpN exp 1
+          , docStr "), 1);"
+          ]
+        (_, _, _, _) -> concatD 
+          [  prt exp
+          , prtSymDefN sym 1
+          , docStr ";"
+          , docStr "_MUDA_SHUFFLE_PS("
+          , prtSymN sym 1
+          , docStr ","
+          , prtSymOfExpN exp 1
+          , docStr ","
+          , prtSymOfExpN exp 1
+          , docStr ","
+          , prtSwizzleIndex swizzleIndex
+          , docStr ")"
+          , docStr ";"
+          ]
 
-          where
+            where
 
-            prtSwizzleIndex :: [Int] -> Doc
-            prtSwizzleIndex []     = concatD []
-            prtSwizzleIndex [d]    = concatD [docStr $ show d]
-            prtSwizzleIndex (d:ds) = concatD [docStr $ show d, docStr ",", prtSwizzleIndex ds]
+              prtSwizzleIndex :: [Int] -> Doc
+              prtSwizzleIndex []     = concatD []
+              prtSwizzleIndex [d]    = concatD [docStr $ show d]
+              prtSwizzleIndex (d:ds) = concatD [docStr $ show d, docStr ",", prtSwizzleIndex ds]
 
       _ -> error ("[CodeGenNEON] TODO: " ++ (show e))
 
@@ -1936,6 +1969,11 @@ headerString = unlines
   , "#define MUDA_STATIC        static"
   , "#endif // __GNUC_"
   , ""
+  , "#ifdef __cplusplus"
+  , "#include <cassert>"
+  , "#else"
+  , "#include <assert.h>"
+  , "#endif"
   , "//#include \"muda.h\""
   , ""
   , ""
@@ -1956,17 +1994,13 @@ headerString = unlines
   , "#endif"
   , ""
   , ""
-  , "/*******************************************************/"
-  , "/* MACRO for shuffle parameter for muda_shuffle_ps().   */"
-  , "/* Argument fp3 is a digit[0123] that represents the fp*/"
-  , "/* from argument \"b\" of muda_shuffle_ps that will be     */"
-  , "/* placed in fp3 of result. fp2 is the same for fp2 in */"
-  , "/* result. fp1 is a digit[0123] that represents the fp */"
-  , "/* from argument \"a\" of muda_shuffle_ps that will be     */"
-  , "/* places in fp1 of result. fp0 is the same for fp0 of */"
-  , "/* result                                              */"
-  , "/*******************************************************/"
-  , "#define _MUDA_SHUFFLE(fp3,fp2,fp1,fp0) (((fp3) << 6) | ((fp2) << 4) | ((fp1) << 2) | ((fp0)))"
+  , "// Use macro since vgetq_lane_f32 requires an immediate value."
+  , "#define _MUDA_SHUFFLE_PS(ret, a, b, i0, i1, i2, i3) {\\"
+  , "    ret = vmovq_n_f32(vgetq_lane_f32((a), i0)); \\"
+  , "    ret = vsetq_lane_f32(vgetq_lane_f32((a), i1), ret, 1); \\"
+  , "    ret = vsetq_lane_f32(vgetq_lane_f32((b), i2), ret, 2); \\"
+  , "    ret = vsetq_lane_f32(vgetq_lane_f32((b), i3), ret, 3); \\"
+  , "}"
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_sel_ps( const float32x4_t a, const float32x4_t b, const float32x4_t mask )"
   , "{"
