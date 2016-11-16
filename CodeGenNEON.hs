@@ -1188,20 +1188,44 @@ instance CodeGenNEON IR.Exp where
 
     --
     -- extract
+    -- 
+    --   map to splat
     --
     IR.EExtract     sym exps 
-        -> concatD [prt $ exps !! 0,      -- expand first elem only
-                    docStr "_MUDA_SHUFFLE_PS(",
-                    prtSymConstDefN sym 1,
-                    docStr ",",
-                    prtFuncArgSymsN $ [exps !! 0],
-                    docStr ",",
-                    prtFuncArgSymsN $ [exps !! 0],
-                    docStr ",",
-                    prtShuffleConstant $ getConstantInt (exps !! 1),
-                    docStr ")",
-                    docStr ";"
-                   ]
+        -> case (getConstantInt (exps !! 1)) of
+          0 -> concatD
+            [ prt $ exps !! 0
+            , prtSymConstDefN sym 1
+            , docStr "="
+            , docStr "vdupq_lane_f32(vget_low_f32("
+            , prtSymOfExpN (exps !! 0 ) 1
+            , docStr "), 0);"
+            ]
+          1 -> concatD
+            [ prt $ exps !! 0
+            , prtSymConstDefN sym 1
+            , docStr "="
+            , docStr "vdupq_lane_f32(vget_low_f32("
+            , prtSymOfExpN (exps !! 0 ) 1
+            , docStr "), 1);"
+            ]
+          2 -> concatD
+            [ prt $ exps !! 0
+            , prtSymConstDefN sym 1
+            , docStr "="
+            , docStr "vdupq_lane_f32(vget_high_f32("
+            , prtSymOfExpN (exps !! 0 ) 1
+            , docStr "), 0);"
+            ]
+          3 -> concatD
+            [ prt $ exps !! 0
+            , prtSymConstDefN sym 1
+            , docStr "="
+            , docStr "vdupq_lane_f32(vget_high_f32("
+            , prtSymOfExpN (exps !! 0 ) 1
+            , docStr "), 1);"
+            ]
+          _ -> error $ "Invalid constant for extract()"
 
     --
     -- bit
