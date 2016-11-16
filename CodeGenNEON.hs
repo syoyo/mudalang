@@ -1193,7 +1193,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [prt $ exps !! 0,      -- expand first elem only
                     prtSymConstDefN sym 1,
                     docStr "=",
-                    docStr "_mm_shuffle_ps",
+                    docStr "muda_shuffle_ps",
                     docStr "(",
                     prtFuncArgSymsN $ [exps !! 0],
                     docStr ",",
@@ -1725,7 +1725,7 @@ instance CodeGenNEON IR.Exp where
 
     --
     -- swizzle op.
-    -- Mapped to _mm_shuffle_ps(). 
+    -- Mapped to muda_shuffle_ps(). 
     -- TODO: DVec support.
     --
     IR.ESwizzle sym swizzleIndex exp -> case (Sym.getType sym) of
@@ -1740,12 +1740,12 @@ instance CodeGenNEON IR.Exp where
         [  prt exp
         , prtSymConstDefN sym 1
         , docStr "="
-        , docStr "_mm_shuffle_ps("
+        , docStr "muda_shuffle_ps("
         , prtSymOfExpN exp 1
         , docStr ","
         , prtSymOfExpN exp 1
         , docStr ","
-        , docStr "_MM_SHUFFLE("
+        , docStr "_MUDA_SHUFFLE("
         , prtSwizzleIndex swizzleIndex
         , docStr "))"
         , docStr ";"
@@ -1955,6 +1955,18 @@ headerString = unlines
   , "    #error \"Sorry, MUDA doesn't support your compiler\""
   , "#endif"
   , ""
+  , ""
+  , "/*******************************************************/"
+  , "/* MACRO for shuffle parameter for muda_shuffle_ps().   */"
+  , "/* Argument fp3 is a digit[0123] that represents the fp*/"
+  , "/* from argument \"b\" of muda_shuffle_ps that will be     */"
+  , "/* placed in fp3 of result. fp2 is the same for fp2 in */"
+  , "/* result. fp1 is a digit[0123] that represents the fp */"
+  , "/* from argument \"a\" of muda_shuffle_ps that will be     */"
+  , "/* places in fp1 of result. fp0 is the same for fp0 of */"
+  , "/* result                                              */"
+  , "/*******************************************************/"
+  , "#define _MUDA_SHUFFLE(fp3,fp2,fp1,fp0) (((fp3) << 6) | ((fp2) << 4) | ((fp1) << 2) | ((fp0)))"
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_sel_ps( const float32x4_t a, const float32x4_t b, const float32x4_t mask )"
   , "{"
@@ -2601,7 +2613,7 @@ getConstantInt exp = case exp of
 
 prtShuffleConstant :: Integer -> Doc
 prtShuffleConstant i = 
-  concatD [ docStr "_MM_SHUFFLE(",
+  concatD [ docStr "_MUDA_SHUFFLE(",
             docStr $ show i,
             docStr ",",
             docStr $ show i,
@@ -2705,7 +2717,7 @@ substText = foldl (\ t (n, v) -> subRegex (mkRegex ("\\[\\[" ++ n ++ "\\]\\]")) 
 -- The order of constant value is c1(i1) and c0(i0).
 --
 emitShuffleConstantD2 i0 i1 = concatD
-  [ docStr "_MM_SHUFFLE2("
+  [ docStr "_MUDA_SHUFFLE2("
   , docStr c1 
   , docStr ","
   , docStr c0
@@ -2720,7 +2732,7 @@ emitShuffleConstantD2 i0 i1 = concatD
 emitShuffleInsnD2 n sym i0 i1 e = concatD
   [ prtSymConstDefN sym n
   , docStr "="
-  , docStr "_mm_shuffle_pd("
+  , docStr "muda_shuffle_pd("
   , emitExprFromIdx i0 e
   , docStr ", "
   , emitExprFromIdx i1 e
