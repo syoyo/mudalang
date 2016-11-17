@@ -385,7 +385,7 @@ prtFtoV sym exp = concatD
 
     [ prtSymConstDefN sym 1
     , docStr "="
-    , docStr "vdupq_n_f321( "
+    , docStr "vdupq_n_f32( "
     , prtSymOfExpN exp 1
     , docStr " )"
     , docStr ";"
@@ -716,38 +716,38 @@ instance CodeGenNEON IR.Exp where
     -- TODO: parameterize bin op str
     --
     IR.EAnd   sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vandq_f32"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "muda_and_ps"    sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> prtBinOpN "vandq_s32" sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.DVec -> prtBinOpN "vandq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: and"
 
     IR.EOr    sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vorrq_f32"     sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "muda_or_ps"     sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> prtBinOpN "vorrq_s32"  sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.DVec -> prtBinOpN "vorrq_f64"     sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: or"
-    IR.EXor   sym e0 e1       -> prtBinOpN   "veorq_s32"    sym e0 e1 (vLen sym)
-    IR.ENot   sym e0 e1       -> prtBinOp    "_mm_todo_ps"   sym e0 e1 -- TODO
+    IR.EXor   sym e0 e1       -> prtBinOpN   "muda_xor_ps"    sym e0 e1 (vLen sym)
+    IR.ENot   sym e0 e1       -> prtBinOp    "muda_todo_not_ps"   sym e0 e1 -- TODO
     IR.EEq    sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vceq_f32"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "vceq_s32" sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "vceq_f64"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "(float32x4_t)vceqq_f32"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "vceqq_s32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "vceqq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: Eq"
 
     IR.ENeq   sym e0 e1 -- !eq
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "_mm_todo_cmpneq_ps"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "muda_neq_ps"    sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> prtBinOpN "_mm_todo_cmpneq_epi32" sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.DVec -> prtBinOpN "_mm_todo_cmpneq_epi32" sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: Neq"
 
     IR.EGt    sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vcgtq_f32"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "(float32x4_t)vcgtq_f32"    sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> prtBinOpN "vcgtq_s32" sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.DVec -> prtBinOpN "cvgtq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: Gt"
 
     IR.EGte   sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vcge_f32"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "(float32x4_t)vcgeq_f32"    sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> concatD
       
         [ prt e0
@@ -765,13 +765,13 @@ instance CodeGenNEON IR.Exp where
       | otherwise              -> error "TODO: Gte"
 
     IR.ELt    sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vcltq_f32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "(float32x4_t)vcltq_f32" sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> prtBinOpN "vcltq_s32" sym e0 e1 (vLen sym) 
       | (tyOfExp e0) == T.DVec -> prtBinOpN "vcltq_f64" sym e0 e1 (vLen sym)
       | otherwise              -> error $ "TODO: Lt" ++ show e
 
     IR.ELte   sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN "vclteq_f32"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN "(float32x4_t)vclteq_f32"    sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> prtBinOpN "vclteq_s32"    sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.DVec -> prtBinOpN "vclteq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: Lte"
@@ -893,7 +893,7 @@ instance CodeGenNEON IR.Exp where
  
         --             , prtSymConstDef sym
         --             , docStr "="
-        --             , docStr "vdupq_n_f321( "
+        --             , docStr "vdupq_n_f32( "
         --             , prtSym idSym
         --             , docStr "["
         --             , prtSymOfExp idxExp 
@@ -1233,7 +1233,7 @@ instance CodeGenNEON IR.Exp where
     IR.EBtoV sym (IR.EInt sym' val) 
         -> concatD [prtSymConstDefN sym 1,
                     docStr "=",
-                    docStr "(float32x4_t)vdup_n_s32(",
+                    docStr "(float32x4_t)vdupq_n_s32(",
                     docStr $ show val ++ "U",
                     docStr ")",
                     docStr ";"
@@ -1256,7 +1256,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "vcvtq_f32_s32("
+                   , docStr "vcvtq_f32_s32((int32x4_t)"
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr ")"
                    , docStr ";"
@@ -1270,7 +1270,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "vcvtq_s32_f32("
+                   , docStr "vcvtq_s32_f32(" 
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr ")"
                    , docStr ";"
@@ -1284,7 +1284,7 @@ instance CodeGenNEON IR.Exp where
         -> concatD [ prt $ exps !! 0      -- first elem only
                    , prtSymConstDefN sym 1
                    , docStr "="
-                   , docStr "vrsqrtsq_f32("
+                   , docStr "vrsqrteq_f32("
                    , prtFuncArgSymsN $ [exps !! 0]
                    , docStr ")"
                    , docStr ";"
@@ -1343,7 +1343,7 @@ instance CodeGenNEON IR.Exp where
                    , docStr "="
                    , docStr "vrndq_f32("
                    , prtFuncArgSymsN $ [exps !! 0]
-                   , docStr "))"
+                   , docStr ")"
                    , docStr ";"
                    ]
 
@@ -1998,7 +1998,7 @@ headerString = unlines
   , "#else"
   , "#include <assert.h>"
   , "#endif"
-  , "//#include \"muda.h\""
+  , "#include \"muda.h\""
   , ""
   , ""
   , "#ifdef __GNUC__"
@@ -2026,9 +2026,29 @@ headerString = unlines
   , "    ret = vsetq_lane_f32(vgetq_lane_f32((b), i3), ret, 3); \\"
   , "}"
   , ""
+  , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_and_ps( const float32x4_t a, const float32x4_t b )"
+  , "{"
+  , "    return (float32x4_t)vandq_s32((int32x4_t)a, (int32x4_t)b);"
+  , "}"
+  , ""
+  , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_or_ps( const float32x4_t a, const float32x4_t b )"
+  , "{"
+  , "    return (float32x4_t)vorrq_s32((int32x4_t)a, (int32x4_t)b);"
+  , "}"
+  , ""
+  , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_xor_ps( const float32x4_t a, const float32x4_t b )"
+  , "{"
+  , "    return (float32x4_t)veorq_s32((int32x4_t)a, (int32x4_t)b);"
+  , "}"
+  , ""
+  , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_neq_ps( const float32x4_t a, const float32x4_t b )"
+  , "{"
+  , "    return (float32x4_t)vmvnq_u32(vceqq_f32(a, b));"
+  , "}"
+  , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_sel_ps( const float32x4_t a, const float32x4_t b, const float32x4_t mask )"
   , "{"
-  , "    // TODO(syoyo): Use VSEL instruction"
+  , "    // TODO(syoyo): Use VSEL instruction?"
   , "    const uint32x4_t um = vcvtq_u32_f32(mask);"
   , "    const uint32x4_t ua = vcvtq_u32_f32(a);"
   , "    const uint32x4_t ub = vcvtq_u32_f32(b);"
@@ -2042,33 +2062,22 @@ headerString = unlines
   , "    return a; // TODO;"
   , "}"
   , ""
+  , "// From SSE2NEON.h -------"
+  , "// NEON does not provide this method"
+  , "// Creates a 4-bit mask from the most significant bits of the four single-precision, floating-point values. https://msdn.microsoft.com/en-us/library/vstudio/4490ys29(v=vs.100).aspx"
+  , "MUDA_STATIC MUDA_ALWAYS_INLINE int muda_gather_ps(float32x4_t a)"
+  , "{"
+  , " // I am not yet convinced that the NEON version is faster than the C version of this"
+  , " const uint32x4_t ia = *(uint32x4_t *)&a;"
+  , " return (ia[0] >> 31) | ((ia[1] >> 30) & 2) | ((ia[2] >> 29) & 4) | ((ia[3] >> 28) & 8);"
+  , "}"
+  , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE int muda_gather_pd( const float64x2_t a, const float64x2_t b )"
   , "{"
   , "    assert(0); "
   , "    return 0; // TODO;"
   , "}"
   , ""
-  , "// from AltiVec/NEON migration guide"
-  , "// this can be replaced with cvttps2pi?"
-  , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_trunc_ps( const float32x4_t x )"
-  , "{"
-  , "    assert(0); "
-  , "    return x; // TODO;"
-  , "}"
-  , ""
-  , "// If we fix rounding mode, the code can be simplified more."
-  , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_floor_ps( const float32x4_t x )"
-  , "{"
-  , "    assert(0); "
-  , "    return x; // TODO;"
-  , "}"
-  , ""
-  , ""
-  , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_ceil_ps( const float32x4_t x )"
-  , "{"
-  , "    assert(0); "
-  , "    return x; // TODO;"
-  , "}"
   , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_divapprox_ps( const float32x4_t a, const float32x4_t x )"
   , "{"
@@ -2084,7 +2093,7 @@ headerString = unlines
   , "}"
   , ""
   , ""
-  , "//#include \"mudamath_neon.h\""
+  , "#include \"mudamath_neon.h\""
   , ""
   , "#endif // MUDAINTRIN_NEON_H"
   ]
