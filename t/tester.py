@@ -19,6 +19,7 @@ import getopt
 
 cmds = {}
 cmds["sse"]  = (".." + os.path.sep + "mudah --sse", "gcc -I. -I../include -c -msse2")
+cmds["neon"]  = (".." + os.path.sep + "mudah --neon", "aarch64-linux-gnu-gcc -I. -I../include -c")
 cmds["vmx"]  = (".." + os.path.sep + "mudah --vmx", "gcc -I. -I../incluee -c -maltivec")
 cmds["llvm"] = (".." + os.path.sep + "mudah --llvm", "llvm-as -f")
 
@@ -31,6 +32,7 @@ def usage():
   opts:
 
     --sse       : Test for SSE2 backend
+    --neon      : Test for NEON backend
     --vmx       : Test for VMX backend
     --llvm      : Test for LLVM backend
 """
@@ -39,7 +41,7 @@ def usage():
 # Parse args
 #
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "", ["sse", "vmx", "llvm", "help"])
+    opts, args = getopt.getopt(sys.argv[1:], "", ["sse", "neon", "vmx", "llvm", "help"])
 except getopt.GetoptError:
     usage()
     sys.exit(2)
@@ -48,6 +50,9 @@ for o, a in opts:
 
     if o == "--sse":
         backend = "sse"
+
+    if o == "--neon":
+        backend = "neon"
 
     if o == "--vmx":
         backend = "vmx"
