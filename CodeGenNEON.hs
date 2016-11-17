@@ -730,8 +730,8 @@ instance CodeGenNEON IR.Exp where
     IR.ENot   sym e0 e1       -> prtBinOp    "muda_todo_not_ps"   sym e0 e1 -- TODO
     IR.EEq    sym e0 e1
       | (tyOfExp e0) == T.Vec  -> prtBinOpN "(float32x4_t)vceqq_f32"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "vceqq_s32" sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "vceqq_f64"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "(int32x4_t)vceqq_s32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "(float64x2_t)fvceqq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: Eq"
 
     IR.ENeq   sym e0 e1 -- !eq
@@ -742,8 +742,8 @@ instance CodeGenNEON IR.Exp where
 
     IR.EGt    sym e0 e1
       | (tyOfExp e0) == T.Vec  -> prtBinOpN "(float32x4_t)vcgtq_f32"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "vcgtq_s32" sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "cvgtq_f64"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "(int32x4_t)vcgtq_s32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "(float64x2_t)cvgtq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: Gt"
 
     IR.EGte   sym e0 e1
@@ -766,14 +766,14 @@ instance CodeGenNEON IR.Exp where
 
     IR.ELt    sym e0 e1
       | (tyOfExp e0) == T.Vec  -> prtBinOpN "(float32x4_t)vcltq_f32" sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "vcltq_s32" sym e0 e1 (vLen sym) 
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "vcltq_f64" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "(int32x4_t)vcltq_s32" sym e0 e1 (vLen sym) 
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "(float64x2_t)vcltq_f64" sym e0 e1 (vLen sym)
       | otherwise              -> error $ "TODO: Lt" ++ show e
 
     IR.ELte   sym e0 e1
       | (tyOfExp e0) == T.Vec  -> prtBinOpN "(float32x4_t)vclteq_f32"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.IVec -> prtBinOpN "vclteq_s32"    sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN "vclteq_f64"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.IVec -> prtBinOpN "(int32x4_t)vclteq_s32"    sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN "(float64x2_t)vclteq_f64"    sym e0 e1 (vLen sym)
       | otherwise              -> error "TODO: Lte"
 
     IR.ENeg  sym exp
@@ -863,9 +863,9 @@ instance CodeGenNEON IR.Exp where
       | otherwise              -> error "TODO: mul"
 
     IR.EDiv   sym e0 e1
-      | (tyOfExp e0) == T.Vec  -> prtBinOpN  "vdiv_f32" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.Vec  -> prtBinOpN  "vdivq_f32" sym e0 e1 (vLen sym)
       | (tyOfExp e0) == T.IVec -> prtBinOpN  "TODO_idiv"  sym e0 e1 (vLen sym)
-      | (tyOfExp e0) == T.DVec -> prtBinOpN  "vdiv_f64" sym e0 e1 (vLen sym)
+      | (tyOfExp e0) == T.DVec -> prtBinOpN  "vdivq_f64" sym e0 e1 (vLen sym)
 
     IR.EDivApprox   sym e0 e1 
       | (tyOfExp e0) == T.Vec  -> prtBinOpN  "muda_divapprox_ps" sym e0 e1 (vLen sym)
@@ -1409,8 +1409,6 @@ instance CodeGenNEON IR.Exp where
 
     --
     -- all(a).
-    -- Mapped to movemask(x) == 0xf.
-    -- TODO: insert gather op for DVec support
     --
     IR.EAll sym exps -> concatD
 
@@ -1426,17 +1424,15 @@ instance CodeGenNEON IR.Exp where
             [ emitAllV sym exp (n-1)
             , prtSymConstDefN sym n
             , docStr "="
-            , docStr "_mm_cmpeq_epi32(_mm_set1_epi32(15), _mm_set1_epi32(_mm_movemask_ps("
+            , docStr "muda_all_ps("
             , prtSymOfExpN exp n
-            , docStr ")))"
+            , docStr ")"
             , docStr ";"
             ]
 
 
     --
     -- any(a).
-    -- Mapped to movemask(x) != 0x0.
-    -- TODO: insert gather op for DVec support
     --
     IR.EAny sym exps -> concatD
       --   -> concatD [ prt $ exps !! 0      -- first elem only
@@ -1460,9 +1456,9 @@ instance CodeGenNEON IR.Exp where
             [ emitAnyV sym exp (n-1)
             , prtSymConstDefN sym n
             , docStr "="
-            , docStr "_mm_cmpgt_epi32(_mm_set1_epi32(_mm_movemask_ps("
+            , docStr "muda_any_ps("
             , prtSymOfExpN exp n
-            , docStr ")), _mm_set1_epi32(0))"
+            , docStr ")"
             , docStr ";"
             ]
 
@@ -2026,6 +2022,12 @@ headerString = unlines
   , "    ret = vsetq_lane_f32(vgetq_lane_f32((b), i3), ret, 3); \\"
   , "}"
   , ""
+  , "// Use macro since vgetq_lane_f64 requires an immediate value."
+  , "#define _MUDA_SHUFFLE_PD(ret, a, b, i0, i1) {\\"
+  , "    ret = vmovq_n_f64(vgetq_lane_f64((a), i0)); \\"
+  , "    ret = vsetq_lane_f64(vgetq_lane_f64((b), i1), ret, 1); \\"
+  , "}"
+  , ""
   , "MUDA_STATIC MUDA_ALWAYS_INLINE float32x4_t muda_and_ps( const float32x4_t a, const float32x4_t b )"
   , "{"
   , "    return (float32x4_t)vandq_s32((int32x4_t)a, (int32x4_t)b);"
@@ -2092,6 +2094,21 @@ headerString = unlines
   , "    return a; // TODO;"
   , "}"
   , ""
+  , "// TODO: optimize"
+  , "MUDA_STATIC MUDA_ALWAYS_INLINE int32x4_t muda_any_ps( const float32x4_t a )"
+  , "{"
+  , "    const uint32x4_t ia = *(const uint32x4_t *)&a;"
+  , "    int ret = (ia[0] != 0) || (ia[1] != 0) || (ia[2] != 0) || (ia[3] != 0);"
+  , "    return vdupq_n_s32(ret);"
+  , "}"
+  , ""
+  , "// TODO: optimize"
+  , "MUDA_STATIC MUDA_ALWAYS_INLINE int32x4_t muda_all_ps( const float32x4_t a )"
+  , "{"
+  , "    const uint32x4_t ia = *(const uint32x4_t *)&a;"
+  , "    int ret = (ia[0] != 0) && (ia[1] != 0) && (ia[2] != 0) && (ia[3] != 0);"
+  , "    return vdupq_n_s32(ret);"
+  , "}"
   , ""
   , "#include \"mudamath_neon.h\""
   , ""
@@ -2784,11 +2801,9 @@ substText = foldl (\ t (n, v) -> subRegex (mkRegex ("\\[\\[" ++ n ++ "\\]\\]")) 
 -- The order of constant value is c1(i1) and c0(i0).
 --
 emitShuffleConstantD2 i0 i1 = concatD
-  [ docStr "_MUDA_SHUFFLE2("
-  , docStr c1 
+  [ docStr c1 
   , docStr ","
   , docStr c0
-  , docStr ")"
   ]
 
   where
@@ -2797,9 +2812,11 @@ emitShuffleConstantD2 i0 i1 = concatD
     c1 = if (even i1) == True then "0" else "1"
 
 emitShuffleInsnD2 n sym i0 i1 e = concatD
-  [ prtSymConstDefN sym n
-  , docStr "="
-  , docStr "muda_shuffle_pd("
+  [ prtSymDefN sym n
+  , docStr ";"
+  , docStr "_MUDA_SHUFFLE_PD("
+  , prtSymN sym n
+  , docStr ", "
   , emitExprFromIdx i0 e
   , docStr ", "
   , emitExprFromIdx i1 e
